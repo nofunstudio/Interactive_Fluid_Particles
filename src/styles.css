@@ -1,0 +1,47 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+  color: white;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  background: black;
+  color: white;
+}
+
+canvas {
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+div {
+  pointer-events: none !important;
+}
+
+h1 {
+  position: relative;
+}
+#root {
+  z-index: 3;
+  position: absolute;
+  pointer-events: none !important;
+}
+
+#jimbo {
+  z-index: 1;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: all !important;
+}
+
+#blackout {
+  z-index: 2;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  pointer-events: none !important;
+}
