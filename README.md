@@ -1,2 +1,4 @@
 # Interactive_Fluid_Particles
-Created with CodeSandbox
+React Three Fiber Fluid x Particles
+Fluid Simulation Adapted from Pavel Dobryakov Open Source Repo:
+https://github.com/PavelDoGreat/WebGL-Fluid-Simulation
