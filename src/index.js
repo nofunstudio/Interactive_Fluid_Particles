@@ -3,6 +3,13 @@ import React, { useEffect, useRef, useMemo } from "react";
 
 import "./styles.css";
 import img from "./images/purp.png";
+import cubeIMG from "./images/envMap.hdr";
+import px from "./images/px.png";
+import nx from "./images/nx.png";
+import py from "./images/py.png";
+import ny from "./images/ny.png";
+import pz from "./images/pz.png";
+import nz from "./images/nz.png";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { degToRad } from "three/src/math/MathUtils";
 import { DoubleSide, Vector2 } from "three";
@@ -11,6 +18,7 @@ import FX from "./FX";
 import { RenderTexture, useTexture, OrbitControls } from "@react-three/drei";
 import { RenderTargetShader } from "./shader";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { useEnvironmentMap } from "./envMap";
 
 function GridBox(props) {
 	const canvasRef = useRef(document.getElementById("jimbo"));
@@ -18,10 +26,18 @@ function GridBox(props) {
 	const group = useRef();
 	const shaderRef = useRef();
 	const image = useTexture(img);
+	const loader = new THREE.CubeTextureLoader();
+	const environmentMap = loader.load([px, nx, py, ny, pz, nz]);
+	// cube map textures is set to use mipmapping (THREE.LinearMipMapLinearFilter
+	// or THREE.LinearMipMapNearestFilter)
+
+	//environmentMap.mapping = THREE.LinearMipMapLinearFilter;
+
+	//const environmentMap = useEnvironmentMap(cubeIMG);
 	let cycleStartTime = 0;
 
 	const particlesGeometry = useMemo(
-		() => new THREE.PlaneGeometry(5, 5, 200, 200),
+		() => new THREE.PlaneGeometry(5, 5, 60, 60),
 		[]
 	);
 
@@ -47,6 +63,7 @@ function GridBox(props) {
 		if (shaderRef.current && textureRef.current) {
 			shaderRef.current.uniforms.t.value = textureRef.current;
 			shaderRef.current.uniforms.t2.value = image;
+			shaderRef.current.uniforms.envMap.value = environmentMap;
 		}
 	}, [textureRef]);
 	return (
