@@ -2,7 +2,7 @@ import ReactDOM from "react-dom/client";
 import React, { useEffect, useRef, useMemo } from "react";
 
 import "./styles.css";
-import img from "./images/purp.png";
+import img from "./images/lolaaa111.png";
 import cubeIMG from "./images/envMap.hdr";
 import px from "./images/px.png";
 import nx from "./images/nx.png";
@@ -19,6 +19,7 @@ import { RenderTexture, useTexture, OrbitControls } from "@react-three/drei";
 import { RenderTargetShader } from "./shader";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useEnvironmentMap } from "./envMap";
+// import { Shoe3D } from "./shoe3d";
 
 function GridBox(props) {
 	const canvasRef = useRef(document.getElementById("jimbo"));
@@ -37,7 +38,7 @@ function GridBox(props) {
 	let cycleStartTime = 0;
 
 	const particlesGeometry = useMemo(
-		() => new THREE.PlaneGeometry(5, 5, 60, 60),
+		() => new THREE.PlaneGeometry(5, 5, 75, 75),
 		[]
 	);
 
@@ -108,6 +109,8 @@ const App = () => {
         <Bloom intensity={.0} />
       </EffectComposer> */}
 			<GridBox />
+			{/* <Shoe3D /> */}
+			<OrbitControls />
 		</Canvas>
 	);
 };
