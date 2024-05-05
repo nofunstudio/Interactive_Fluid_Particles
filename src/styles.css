@@ -17,7 +17,7 @@ canvas {
 	pointer-events: none;
 }
 div {
-	pointer-events: none !important;
+	/* pointer-events: none !important; */
 }
 
 h1 {

@@ -7,10 +7,10 @@ export const RenderTargetShader = shaderMaterial(
 		time: 0,
 		t2: undefined,
 		t: undefined,
-		envMap: undefined,
-		damping: 0.02,
+		damping: 0.01,
 		roughness: 0.0,
 		metalness: 0.0,
+		pointSize: 2.0,
 
 		directionalLightColor: new THREE.Color(0.5, 0.5, 0.5),
 		directionalLightDirection: new THREE.Vector3(-1, -1, -1),
@@ -23,33 +23,41 @@ varying vec3 vReflect;
 attribute vec3 originalPosition;
 uniform sampler2D t;
 uniform float time;
+uniform float pointSize;
 uniform float damping;
 varying vec3 vNormal;
 
 void main() {
-    vec4 color = texture2D(t, uv);
-    float scaledGreen = 0.4 * color.a;
-    vec3 displacementDirection = vec3(0, scaledGreen, scaledGreen);
-    float displacementMagnitude = 1.;
-    vec3 displacedPosition = position + (displacementDirection * displacementMagnitude);
-    float grayscale = dot(color.rgb, vec3(0.2989, 0.5870, 0.1140));
-    float blendFactor = damping * pow(grayscale, 3.0);
-    vec3 finalPosition = mix(displacedPosition, originalPosition, smoothstep(0.0, 1.0, blendFactor));
+    vec4 textureColor = texture2D(t, uv);
 
+    // Use the alpha channel or luminance for displacement
+    float maxDisplacement = 2.0;
+    float displacementIntensity = clamp(textureColor.r, 0.0, maxDisplacement);
+
+    // Directly use displacementIntensity to displace the vertex along the normal
+    vec3 displacedPosition = position + normal * (displacementIntensity * 20.);
+
+    float displacementFactor = damping * displacementIntensity;
+
+    // Blend between the original and displaced positions
+    vec3 finalPosition = mix(position, displacedPosition, displacementFactor);
+
+    // Standard transformations for passing to the fragment shader
     vUv = uv;
-    vNormal = normalize(normalMatrix * normal); // Transformed normal
+    vNormal = normalize(normalMatrix * normal);
     vViewPosition = (-modelViewMatrix * vec4(finalPosition, 1.0)).xyz;
     vec3 transformedNormal = normalMatrix * normal;
     vReflect = reflect(normalize(position - cameraPosition), transformedNormal);
+
     gl_Position = projectionMatrix * modelViewMatrix * vec4(finalPosition, 1.0);
-    gl_PointSize = 3.0; // Adjust to your desired sphere size
+    gl_PointSize = pointSize + displacementIntensity*3.; // Adjust to your desired sphere size
 }
+
 
 	`,
 	`
   varying vec2 vUv;
   uniform sampler2D t2;
-  uniform samplerCube envMap;
   varying vec3 vViewPosition; // Make sure you're passing this from vertex shader
   uniform float roughness;
   uniform float metallic;

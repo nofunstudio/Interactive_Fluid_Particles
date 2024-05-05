@@ -3,52 +3,83 @@ import React, { useEffect, useRef, useMemo } from "react";
 
 import "./styles.css";
 import img from "./images/bee.png";
-import cubeIMG from "./images/envMap.hdr";
-import px from "./images/px.png";
-import nx from "./images/nx.png";
-import py from "./images/py.png";
-import ny from "./images/ny.png";
-import pz from "./images/pz.png";
-import nz from "./images/nz.png";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { degToRad } from "three/src/math/MathUtils";
+import {
+	Canvas,
+	useFrame,
+	useThree,
+	createPortal,
+	useLoader,
+} from "@react-three/fiber";
 import { DoubleSide, Vector2 } from "three";
 import * as THREE from "three";
-import FX from "./FX";
-import { RenderTexture, useTexture, OrbitControls } from "@react-three/drei";
+import { useTexture, OrbitControls } from "@react-three/drei";
+// import { Home } from "./Home";
+import {
+	useFluid,
+	useSingleFBO,
+	useFxTexture,
+} from "@funtech-inc/use-shader-fx";
+import { FXTargetShader } from "./FXshader";
 import { RenderTargetShader } from "./shader";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useEnvironmentMap } from "./envMap";
-// import { Shoe3D } from "./shoe3d";
 
 function GridBox(props) {
-	const canvasRef = useRef(document.getElementById("jimbo"));
+	const imageBackgroundState = true;
+	const showFluidTextureDebug = false;
+	const ref = useRef(null);
 	const textureRef = useRef();
-	const group = useRef();
 	const shaderRef = useRef();
 	const image = useTexture(img);
-	const loader = new THREE.CubeTextureLoader();
-	const environmentMap = loader.load([px, nx, py, ny, pz, nz]);
-	// cube map textures is set to use mipmapping (THREE.LinearMipMapLinearFilter
-	// or THREE.LinearMipMapNearestFilter)
+	const { size, dpr, camera } = useThree((state) => {
+		return { size: state.size, dpr: state.viewport.dpr, camera: state.camera };
+	});
+	const [bg] = useLoader(THREE.TextureLoader, [img]);
 
-	//environmentMap.mapping = THREE.LinearMipMapLinearFilter;
+	const [updateFluid, setFluid, { output }] = useFluid({
+		size,
+		dpr: dpr,
+	});
+	const offscreenScene = useMemo(() => new THREE.Scene(), []);
 
-	//const environmentMap = useEnvironmentMap(cubeIMG);
-	let cycleStartTime = 0;
+	const [boxView, updateRenderTarget] = useSingleFBO({
+		scene: offscreenScene,
+		camera,
+		size,
+		dpr,
+		samples: 4,
+	});
+
+	const [updateFxTexture] = useFxTexture({ size, dpr });
 
 	const particlesGeometry = useMemo(
-		() => new THREE.PlaneGeometry(5, 5, 400, 400),
+		//set the amount of particles
+		() => new THREE.PlaneGeometry(5, 5, 100, 100),
 		[]
 	);
 
-	useFrame(({ clock }) => {
-		if (textureRef.current) {
-			textureRef.current.needsUpdate = true;
-		}
-
+	useFrame((props) => {
+		updateFluid(props);
 		if (shaderRef.current) {
-			const elapsedTime = clock.getElapsedTime();
+			if (ref.current) {
+				shaderRef.current.uniforms.t.value = output;
+				if (imageBackgroundState) {
+					const bgTexture = updateFxTexture(props, {
+						map: output,
+						padding: 0.0,
+						mapIntensity: 0.01,
+						edgeIntensity: -0.5,
+						texture0: bg,
+					});
+					ref.current.uniforms.u_fx.value = bgTexture;
+					shaderRef.current.uniforms.t2.value = boxView.texture;
+				} else {
+					ref.current.uniforms.u_fx.value = output;
+					shaderRef.current.uniforms.t2.value = image;
+				}
+
+				ref.current.uniforms.u_alpha = 0.0;
+				updateRenderTarget(props.gl);
+			}
+			const elapsedTime = props.clock.getElapsedTime();
 
 			// Increase the time uniform value
 			shaderRef.current.uniforms.time.value = elapsedTime * 0.1; // Adjust this value to increase or decrease the speed
@@ -60,33 +91,55 @@ function GridBox(props) {
 		}
 	});
 
-	useEffect(() => {
-		if (shaderRef.current && textureRef.current) {
-			shaderRef.current.uniforms.t.value = textureRef.current;
-			shaderRef.current.uniforms.t2.value = image;
-			shaderRef.current.uniforms.envMap.value = environmentMap;
-		}
-	}, [textureRef]);
-	return (
-		<group ref={group} {...props}>
-			<mesh rotation={[0, degToRad(0), degToRad(0)]}>
-				<boxGeometry args={[0, 0, 0]} />
-				<meshBasicMaterial transparent>
-					<canvasTexture
-						ref={textureRef}
-						attach="map"
-						image={canvasRef.current}
-					/>
-				</meshBasicMaterial>
-			</mesh>
+	useEffect(() => {}, [textureRef]);
 
-			{/* <mesh geometry={particlesGeometry} position={[0, 0.0, -0.0]}>
-        <meshBasicMaterial map={image} />
-      </mesh> */}
+	useEffect(() => {
+		if (ref.current && output) {
+			ref.current.uniforms.u_fx.value = output;
+
+			//  ref.current.u_alpha = 0.0;
+		}
+	}, [output]);
+
+	useEffect(() => {
+		setFluid({
+			density_dissipation: 0.99,
+			velocity_dissipation: 0.99,
+			velocity_acceleration: 100,
+			splat_radius: 0.001,
+			curl_strength: 50,
+			// fluid_color: new THREE.Color(0x000000),
+			pressure_iterations: 20,
+		});
+	}, []);
+	return (
+		<>
+			{createPortal(
+				<mesh>
+					<planeGeometry args={[2, 2]} />
+					<fXTargetShader ref={ref} u_fx={output} />
+				</mesh>,
+				offscreenScene
+			)}
+			{/* background image  */}
+			{/*
+			<mesh geometry={particlesGeometry} position={[0, 0.0, -0.0]}>
+				<meshBasicMaterial map={image} />
+			</mesh> */}
+
+			{/* debug fluid texture  */}
+
+			{showFluidTextureDebug && (
+				<mesh position={[4, 0.0, -0.0]}>
+					<planeGeometry args={[2, 2]} />
+					<meshBasicMaterial map={boxView.texture} />
+				</mesh>
+			)}
+
 			<mesh>
 				<points
 					geometry={particlesGeometry}
-					position={[0, 0.0, 1.3]}
+					position={[0, 0.0, 0]}
 					rotation={[0, 0, 0]}
 				>
 					<renderTargetShader
@@ -94,23 +147,19 @@ function GridBox(props) {
 						transparent
 						side={DoubleSide}
 						depth
+						pointSize={4.0}
 						//blending={THREE.AdditiveBlending}
 					/>
 				</points>
 			</mesh>
-		</group>
+		</>
 	);
 }
 
 const App = () => {
 	return (
 		<Canvas>
-			{/* <EffectComposer>
-        <Bloom intensity={.0} />
-      </EffectComposer> */}
 			<GridBox />
-			{/* <Shoe3D /> */}
-			<OrbitControls />
 		</Canvas>
 	);
 };
