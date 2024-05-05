@@ -42,7 +42,7 @@ void main() {
     vec3 transformedNormal = normalMatrix * normal;
     vReflect = reflect(normalize(position - cameraPosition), transformedNormal);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(finalPosition, 1.0);
-    gl_PointSize = 13.0; // Adjust to your desired sphere size
+    gl_PointSize = 3.0; // Adjust to your desired sphere size
 }
 
 	`,
@@ -60,9 +60,9 @@ void main() {
   void main() {
     vec4 baseColor = texture2D(t2, vUv);
     // Check if the pixel is black or close to black
-    // if (length(baseColor.rgb) < 0.01) discard; // You can adjust the 0.01 value to your liking
-    float threshold = 0.99; // Adjust this value based on how close to white you want to cut out
-    if (baseColor.r > threshold && baseColor.g > threshold && baseColor.b > threshold) discard;
+    //if (baseColor.g > 0.99) discard; // You can adjust the 0.01 value to your liking
+   // float threshold = 0.99; // Adjust this value based on how close to white you want to cut out
+   // if (baseColor.r > threshold && baseColor.g > threshold && baseColor.b > threshold) discard;
 
     vec3 toFragment = normalize(vec3(2.0 * gl_PointCoord.x - 1.0, 2.0 * gl_PointCoord.y - 1.0, sqrt(1.0 - (2.0 * gl_PointCoord.x - 1.0) * (2.0 * gl_PointCoord.x - 1.0) - (2.0 * gl_PointCoord.y - 1.0) * (2.0 * gl_PointCoord.y - 1.0))));
     

@@ -2,7 +2,7 @@ import ReactDOM from "react-dom/client";
 import React, { useEffect, useRef, useMemo } from "react";
 
 import "./styles.css";
-import img from "./images/lolaaa111.png";
+import img from "./images/bee.png";
 import cubeIMG from "./images/envMap.hdr";
 import px from "./images/px.png";
 import nx from "./images/nx.png";
@@ -38,7 +38,7 @@ function GridBox(props) {
 	let cycleStartTime = 0;
 
 	const particlesGeometry = useMemo(
-		() => new THREE.PlaneGeometry(5, 5, 75, 75),
+		() => new THREE.PlaneGeometry(5, 5, 400, 400),
 		[]
 	);
 
