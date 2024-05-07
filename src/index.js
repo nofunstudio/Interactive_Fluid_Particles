@@ -66,7 +66,7 @@ function GridBox(props) {
 			step: 1,
 		},
 		splat_radius: {
-			value: 0.15,
+			value: 0.25,
 			min: 0,
 			max: 10,
 			step: 0.01,
@@ -282,7 +282,7 @@ const App = () => {
 
 	return (
 		<>
-			<Leva hidden={false} />
+			<Leva hidden={false} collapsed hideTitleBar />
 			<Canvas>
 				<GridBox key={refresh} />
 				<ambientLight intensity={0.5} />
