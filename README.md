@@ -1,7 +1,15 @@
 # Interactive_Fluid_Particles
 React Three Fiber Fluid x Particles
-Fluid Simulation Adapted from Pavel Dobryakov Open Source Repo:
-https://github.com/PavelDoGreat/WebGL-Fluid-Simulation
 
-Still need to optimize performance but demo can be found here:
-https://fluid.nofun.io/
+Demo Link: https://fluid.nofun.io/
+
+Built on use-shader-fx library:
+
+https://use-shader-fx.vercel.app/
+https://github.com/FunTechInc/use-shader-fx
+
+
+steps to run:
+npm install
+npm start
+
