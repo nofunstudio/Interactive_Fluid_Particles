@@ -11,22 +11,46 @@ body {
 	color: white;
 }
 
-canvas {
-	width: 100vw;
-	height: 100vh;
-	pointer-events: none;
+.canvas {
+	width: 100%;
+	height: 100svh;
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: -1;
 }
-div {
-	/* pointer-events: none !important; */
+
+.wrapper {
+	width: 100%;
+	height: 100svh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.container {
+	width: fit-content;
+	height: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	overflow: hidden;
+	mix-blend-mode: difference;
+	color: white;
 }
 
 h1 {
 	position: relative;
 }
 #root {
-	z-index: 3;
-	position: absolute;
-	pointer-events: none !important;
+	position: fixed;
+	width: 100%;
+	height: 100svh;
+
+	align-items: center;
+	justify-content: center;
 }
 
 #jimbo {

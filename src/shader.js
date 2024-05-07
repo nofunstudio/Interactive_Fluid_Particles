@@ -31,8 +31,9 @@ void main() {
     vec4 textureColor = texture2D(t, uv);
 
     // Use the alpha channel or luminance for displacement
-    float maxDisplacement = 2.0;
-    float displacementIntensity = clamp(textureColor.r, 0.0, maxDisplacement);
+    float maxDisplacement = 3.;
+    float displacementIntensity = clamp(textureColor.r*.99 , 0.0, maxDisplacement);
+    
 
     // Directly use displacementIntensity to displace the vertex along the normal
     vec3 displacedPosition = position + normal * (displacementIntensity * 20.);
@@ -50,7 +51,7 @@ void main() {
     vReflect = reflect(normalize(position - cameraPosition), transformedNormal);
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(finalPosition, 1.0);
-    gl_PointSize = pointSize + displacementIntensity*3.; // Adjust to your desired sphere size
+    gl_PointSize = pointSize + displacementIntensity*5.; // Adjust to your desired sphere size
 }
 
 
@@ -81,14 +82,15 @@ void main() {
     float edgeSoftness = 0.2;  
     float alpha = smoothstep(1.0, 1.0 - edgeSoftness, len);
 
-    vec3 ambientColor = baseColor.rgb * 0.1;  // Reduced ambient intensity
+    vec3 ambientColor = baseColor.rgb * 0.01;  // Reduced ambient intensity
     vec3 N = toFragment;
-    vec3 L = normalize(vec3(0.0, 1.0, 1.0));
+    //light source
+    vec3 L = normalize(vec3(1.0, -2.0, 10.0));
 
-    float shininess = 5.0;
+    float shininess = 10.0;
 
     float specularStrength = pow(max(dot(reflect(-L, N), N), 0.0), shininess);
-    vec3 specularColor = specularStrength * vec3(1.0, 1.0, 1.0) * 0.5;  // Reduced specular intensity
+    vec3 specularColor = specularStrength * vec3(1.0, 1.0, 1.0) * .25;  // Reduced specular intensity
 
     vec3 finalColor = baseColor.rgb + ambientColor + specularColor;
     finalColor = clamp(finalColor, 0.0, 1.0);  // Ensure values remain in the valid range

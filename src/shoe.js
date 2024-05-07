@@ -4,7 +4,8 @@ import { Html, ContactShadows, Points, Float } from "@react-three/drei";
 import * as THREE from "three";
 import { PRWMLoader } from "three/examples/jsm/loaders/PRWMLoader";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
-import {} from "react";
+
+//THIS FILE ISNT USED IN THE FINAL PROJECT
 
 const Model = () => {
 	// * is automatically replaced by 'le' or 'be' depending on the client platform's endianness
@@ -51,7 +52,7 @@ const Particle = () => {
 		size: 2.529,
 		onBeforeCompile: (shader) => {
 			shader.vertexShader = `
-        varying vec2 vUv;
+        // varying vec2 vUv;
         ${shader.vertexShader}
       `.replace(
 				`#include <begin_vertex>`,
@@ -61,7 +62,7 @@ const Particle = () => {
 			);
 			console.log(shader.vertexShader);
 			shader.fragmentShader = `
-        varying vec2 vUv;
+        // varying vec2 vUv;
         ${shader.fragmentShader}
       `.replace(
 				`#include <map_particle_fragment>`,
@@ -70,16 +71,13 @@ const Particle = () => {
           diffuseColor *= mapTexel;
         `
 			);
-			console.log(shader.fragmentShader);
+			// console.log(shader.fragmentShader);
 		},
 	});
 
 	return (
 		<>
-			<mesh scale={7.8} position={[0, -0.35, 0]}>
-				<points geometry={geometry} material={m} />
-			</mesh>
-			<mesh scale={8} position={[0, -0.35, 0]}>
+			<mesh scale={8} position={[0, -0.35, 3]}>
 				<points geometry={geometry} material={m} />
 			</mesh>
 		</>
@@ -111,7 +109,7 @@ export function Shoe() {
 export function ParticleShoe() {
 	return (
 		<Suspense fallback={<Html>Loading...</Html>}>
-			<color attach="background" args={["black"]} />
+			{/* <color attach="background" args={["black"]} /> */}
 			<Particle />
 		</Suspense>
 	);
