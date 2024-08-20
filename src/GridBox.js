@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useMemo, useState } from "react";
 import { Perf } from "r3f-perf";
 
 import "./styles.css";
-import img from "./images/link.png";
-import img2 from "./images/link.png";
-import img3 from "./images/link.png";
-import img4 from "./images/bluenoise.png";
+import img from "./images/frame1.png";
+import img2 from "./images/frame2.png";
+import img3 from "./images/frame3.png";
+import img4 from "./images/frame4.png";
 import {
 	Canvas,
 	useFrame,
@@ -15,35 +15,18 @@ import {
 } from "@react-three/fiber";
 import { DoubleSide, Vector2 } from "three";
 import * as THREE from "three";
-import { useTexture, OrbitControls } from "@react-three/drei";
 import { useSingleFBO } from "@funtech-inc/use-shader-fx";
+import { BaseShader } from "./BaseShader";
 import { FXTargetShader } from "./FXshaderdupe";
 import { RenderTargetShader } from "./shader";
 import { useControls, Leva } from "leva";
 
 export function GridBox(props) {
-	const ref = useRef(null);
-	const textureRef = useRef();
 	const shaderRef = useRef();
-	const image = useTexture(img);
 	const { size, camera, viewport } = useThree();
 	const dpr = viewport.dpr;
 
-	const {
-		showDisplacementTexture,
-		pointSize,
-		gridSize,
-		showImage,
-		showPerf,
-		requestGeneration,
-	} = useControls({
-		showImage: {
-			value: true,
-		},
-
-		showDisplacementTexture: {
-			value: false,
-		},
+	const { pointSize, gridSize, showPerf } = useControls({
 		pointSize: {
 			value: 4,
 			min: 0.1,
@@ -51,15 +34,12 @@ export function GridBox(props) {
 			step: 0.1,
 		},
 		gridSize: {
-			value: 100,
+			value: 300,
 			min: 10,
 			max: 500,
 			step: 10,
 		},
 		showPerf: {
-			value: false,
-		},
-		requestGeneration: {
 			value: false,
 		},
 	});
@@ -69,39 +49,34 @@ export function GridBox(props) {
 	const [highResImg] = useLoader(THREE.TextureLoader, [img3]);
 	const [noiseImg] = useLoader(THREE.TextureLoader, [img4]);
 	const [generationRequested, setGenerationRequested] = useState(true);
-	const [transitionNoise, setTransitionNoise] = useState(0.0);
-	const [transition1, setTransition1] = useState(0.0);
-	const [transition2, setTransition2] = useState(0.0);
-	const [transitionNoiseActive, setTransitionNoiseActive] = useState(false);
-	const [transition1Active, setTransition1Active] = useState(false);
-	const [transition2Active, setTransition2Active] = useState(false);
+	const [phase, setPhase] = useState(0);
 	const [generationComplete, setGenerationComplete] = useState(false);
 	const [showParticles, setShowParticles] = useState(true);
 
 	const resetValues = () => {
 		setShowParticles(false);
-		setTransition2Active(false);
-		setTransition1Active(false);
 		setGenerationRequested(false);
-		setGenerationComplete(false);
-		setTransitionNoise(0.0);
-		setTransition1(0.0);
-		setTransition2(0.0);
+		setGenerationComplete(true);
 		//set in a loop for testing
 		setTimeout(() => {
 			setGenerationRequested(true);
-		}, 100);
+		}, 1000);
 	};
 
-	const offscreenScene = useMemo(() => new THREE.Scene(), []);
+	useEffect(() => {
+		if (generationRequested) {
+			setShowParticles(true);
+			setPhase(0);
 
-	const [boxView, updateRenderTarget] = useSingleFBO({
-		scene: offscreenScene,
-		camera,
-		size,
-		dpr,
-		samples: 4,
-	});
+			setTimeout(() => {
+				setPhase(1);
+			}, 1000);
+
+			setTimeout(() => {
+				setPhase(2);
+			}, 2000);
+		}
+	}, [generationRequested]);
 
 	const aspectRatio = size.width / size.height;
 	const fov = camera.fov * (Math.PI / 180); // Convert FOV from degrees to radians
@@ -113,57 +88,38 @@ export function GridBox(props) {
 	);
 
 	useFrame((props) => {
-		if (generationRequested) {
-			console.log(transitionNoise);
-			if (transitionNoiseActive && transitionNoise <= 0.99) {
-				setTransitionNoise(transitionNoise + 0.01);
-			}
-			//return to original position
-			if (!transitionNoiseActive) {
-				if (transitionNoise >= 0.01) {
-					setTransitionNoise(transitionNoise - 0.01);
+		const elapsedTime = props.clock.getElapsedTime();
+		if (shaderRef.current) {
+			// shaderRef.current.uniforms.t.value = boxView.texture;
+			if (phase === 0) {
+				if (shaderRef.current.uniforms.transitionNoise.value < 0.99) {
+					shaderRef.current.uniforms.transitionNoise.value += 0.01;
 				}
-			}
+			} else if (phase === 1) {
+				if (shaderRef.current.uniforms.transitionNoise.value > 0.35) {
+					shaderRef.current.uniforms.transitionNoise.value -= 0.005;
+				}
 
-			if (transition1Active && transition1 < 1.0) {
-				setTransition1(transition1 + 0.01);
-			}
-			if (transition2Active) {
-				//final transition begins
-				if (transition2 < 0.99) {
-					setTransition2(transition2 + 0.01);
+				if (shaderRef.current.uniforms.transition1.value < 0.95) {
+					shaderRef.current.uniforms.transition1.value += 0.05;
+				}
+			} else if (phase === 2) {
+				if (shaderRef.current.uniforms.transition2.value < 0.95) {
+					shaderRef.current.uniforms.transition2.value += 0.05;
+				}
+				if (shaderRef.current.uniforms.transitionNoise.value > 0.01) {
+					shaderRef.current.uniforms.transitionNoise.value -= 0.01;
 				} else {
 					resetValues();
 				}
 			}
-		}
 
-		const elapsedTime = props.clock.getElapsedTime();
-		if (shaderRef.current) {
-			shaderRef.current.uniforms.t.value = boxView.texture;
-			shaderRef.current.uniforms.transition1.value = transition1;
-			shaderRef.current.uniforms.transition2.value = transition2;
-			shaderRef.current.uniforms.transitionNoise.value = transitionNoise;
 			shaderRef.current.uniforms.time.value = elapsedTime * 0.1;
-
-			if (showImage) {
-				shaderRef.current.uniforms.t2.value = currentImg;
-				shaderRef.current.uniforms.t3.value = lowResImg;
-				shaderRef.current.uniforms.t4.value = highResImg;
-			} else {
-				//displacement texture debug
-				shaderRef.current.uniforms.t2.value = boxView.texture;
-			}
+			// this can be optimized by using a single texture and updating the uniforms
+			shaderRef.current.uniforms.t2.value = currentImg;
+			shaderRef.current.uniforms.t3.value = lowResImg;
+			shaderRef.current.uniforms.t4.value = highResImg;
 		}
-
-		if (ref.current) {
-			if (ref.current.uniforms.u_progress < 0.99) {
-				ref.current.uniforms.u_progress = +0.01;
-			} else {
-				ref.current.uniforms.u_progress = 0.0;
-			}
-		}
-		updateRenderTarget(props.gl);
 	});
 
 	//cleanup old particles
@@ -174,51 +130,21 @@ export function GridBox(props) {
 		};
 	}, [particlesGeometry]);
 
-	useEffect(() => {
-		if (generationRequested) {
-			setShowParticles(true);
-
-			setTransitionNoiseActive(true);
-
-			setTimeout(() => {
-				//noise needs to return to original position
-				setTransitionNoiseActive(false);
-				setTransition1Active(true);
-			}, 800);
-
-			setTimeout(() => {
-				setTransition1Active(false);
-				setGenerationComplete(true);
-				setTransition2Active(true);
-			}, 1200);
-		}
-	}, [generationRequested]);
-
 	return (
 		<>
 			{showPerf && <Perf position={"top-left"} />}
-			{createPortal(
-				<mesh>
-					<planeGeometry args={[2, 2]} />
-					<fXTargetShader ref={ref} u_fx={noiseImg} u_progress={0.5} />
-				</mesh>,
-				offscreenScene
-			)}
+
 			{/* background image  */}
 
 			<mesh geometry={particlesGeometry} position={[0, 0.0, -0.0]}>
 				<meshBasicMaterial
-					map={highResImg}
-					opacity={1 - transition1 + transition2}
+					map={phase === 2 ? highResImg : phase === 1 ? lowResImg : currentImg}
+					opacity={1.0}
+					needsUpdate={true}
 					transparent
 				/>
 			</mesh>
 
-			{showDisplacementTexture && (
-				<mesh geometry={particlesGeometry} position={[0, 0.0, -0.0]}>
-					<meshBasicMaterial map={boxView.texture} />
-				</mesh>
-			)}
 			{showParticles && (
 				<mesh key={gridSize}>
 					<points

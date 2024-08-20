@@ -176,10 +176,10 @@ void main() {
 
     vUv = uv;
         vec3 distortion1 = vec3(position.x*1.,position.y,1.)*curlNoise(vec3(
-    position.x*0.95 +time*0.1,
-    position.y*0.95 + time*0.1,
+    position.x*0.95 +time*0.9,
+    position.y*0.95 + time*0.9,
     (position.x + position.y)+time*.1
-    ))*transitionNoise*.25;
+    ))*transitionNoise*.2;
     
     vec3 finalPosition = position + distortion1;
        // Ensure Z position is positive
@@ -191,7 +191,7 @@ void main() {
 
    gl_Position = projectionMatrix * modelViewMatrix * vec4(finalPosition, 1.0);
     
-    gl_PointSize =( transitionNoise)*50. ;
+    gl_PointSize =(transitionNoise)*15. ;
       // gl_PointSize =10.;
    
 }
@@ -205,6 +205,7 @@ void main() {
   uniform sampler2D t4;
   uniform float transition1;
   uniform float transition2;
+  uniform float transitionNoise;
   varying vec3 vViewPosition; 
   uniform float roughness;
   uniform float metallic;
@@ -224,10 +225,6 @@ void main() {
     // Combine the two mixes to get the final baseColor
     vec4 baseColor = mix(mix1, mix2, transition2);
     
-    // Check if the pixel is black or close to black
-    //if (baseColor.g > 0.99) discard; // You can adjust the 0.01 value to your liking
-   // float threshold = 0.99; // Adjust this value based on how close to white you want to cut out
-   // if (baseColor.r > threshold && baseColor.g > threshold && baseColor.b > threshold) discard;
 
     vec3 toFragment = normalize(vec3(2.0 * gl_PointCoord.x - 1.0, 2.0 * gl_PointCoord.y - 1.0, sqrt(1.0 - (2.0 * gl_PointCoord.x - 1.0) * (2.0 * gl_PointCoord.x - 1.0) - (2.0 * gl_PointCoord.y - 1.0) * (2.0 * gl_PointCoord.y - 1.0))));
     
