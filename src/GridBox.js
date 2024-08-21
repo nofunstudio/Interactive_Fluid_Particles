@@ -14,21 +14,39 @@ import { DoubleSide, Vector2 } from "three";
 import * as THREE from "three";
 import { RenderTargetShader } from "./shader";
 import { DistortionShader } from "./DistortionShader";
+import { PixelShader } from "./pixelShader";
 import { useControls, Leva } from "leva";
 
 export function GridBox(props) {
-	const { pointSize, gridSize, distScale, distort, showPerf } = useControls({
+	// const PIXELS = [
+	// 	9, 20, 30, 40, 50, 60, 80, 100, 125, 150, 175, 200, 225, 250,
+	// ].map((v) => v / 100);
+	const PIXELS = [
+		1, 1.5, 2, 2.5, 3, 1, 1.5, 2, 2.5, 3, 3.5, 4, 2, 2.5, 3, 3.5, 4, 4.5, 5,
+		5.5, 6, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 20, 100,
+	].map((v) => v / 100);
+
+	const {
+		pointSize,
+		gridSize,
+		distScale,
+		progress,
+		showDistortion,
+		showParticles,
+		showPixelate,
+		showPerf,
+	} = useControls({
 		pointSize: {
 			value: 0.5,
 			min: 0.1,
 			max: 25,
 			step: 0.1,
 		},
-		distort: {
+		progress: {
 			value: 0.1,
 			min: 0.01,
 			max: 1,
-			step: 0.01,
+			step: 0.001,
 		},
 		distScale: {
 			value: 4,
@@ -42,6 +60,15 @@ export function GridBox(props) {
 			max: 500,
 			step: 10,
 		},
+		showPixelate: {
+			value: false,
+		},
+		showDistortion: {
+			value: true,
+		},
+		showParticles: {
+			value: false,
+		},
 		showPerf: {
 			value: false,
 		},
@@ -49,6 +76,7 @@ export function GridBox(props) {
 
 	const shaderRef = useRef();
 	const distortionRef = useRef();
+	const pixelateRef = useRef();
 	const { size, camera, viewport } = useThree();
 	const dpr = viewport.dpr;
 	const aspectRatio = size.width / size.height;
@@ -86,6 +114,12 @@ export function GridBox(props) {
 			distortionRef.current.uniforms.t.value = currentHighResImgRef.current;
 			distortionRef.current.uniforms.t2.value = lowResImg;
 		}
+
+		if (pixelateRef.current) {
+			pixelateRef.current.uniforms.t.value = currentHighResImgRef.current;
+			pixelateRef.current.uniforms.t2.value = lowResImg;
+			pixelateRef.current.uniforms.uPixels.value = PIXELS;
+		}
 	}, [currentHighResImgRef.current, lowResImg]);
 
 	//simulates loading the next batch of images for generation
@@ -121,6 +155,7 @@ export function GridBox(props) {
 
 	useFrame((props) => {
 		const elapsedTime = props.clock.getElapsedTime();
+
 		if (shaderRef.current) {
 			if (phase === 0) {
 				if (shaderRef.current.uniforms.progressDistortion.value < 0.99) {
@@ -167,15 +202,47 @@ export function GridBox(props) {
 					distortionRef.current.uniforms.progressDistortion.value -= 0.005;
 				}
 			} else if (phase === 2) {
+				currentHighResImgRef.current = highResImg;
 				distortionRef.current.uniforms.t.value = currentHighResImgRef.current;
 				if (distortionRef.current.uniforms.progressImage.value > 0.01) {
 					distortionRef.current.uniforms.progressImage.value -= 0.01;
 				}
-				if (distortionRef.current.uniforms.progressDistortion.value > 0.0) {
+				if (distortionRef.current.uniforms.progressDistortion.value >= 0.0015) {
 					distortionRef.current.uniforms.progressDistortion.value -= 0.0015;
+				} else {
+					resetValues();
 				}
 			}
 			distortionRef.current.uniforms.scale.value = distScale;
+		}
+
+		if (pixelateRef.current) {
+			pixelateRef.current.uniforms.time.value = elapsedTime * 1;
+			if (phase === 0) {
+				if (pixelateRef.current.uniforms.progressDistortion.value < 0.99) {
+					pixelateRef.current.uniforms.progressDistortion.value += 0.005;
+				}
+			} else if (phase === 1) {
+				pixelateRef.current.uniforms.t2.value = lowResImg;
+				if (pixelateRef.current.uniforms.progressImage.value < 1.0) {
+					pixelateRef.current.uniforms.progressImage.value += 0.025;
+				}
+
+				if (pixelateRef.current.uniforms.progressDistortion.value > 0.075) {
+					pixelateRef.current.uniforms.progressDistortion.value -= 0.005;
+				}
+			} else if (phase === 2) {
+				currentHighResImgRef.current = highResImg;
+				pixelateRef.current.uniforms.t.value = currentHighResImgRef.current;
+				if (pixelateRef.current.uniforms.progressImage.value > 0.01) {
+					pixelateRef.current.uniforms.progressImage.value -= 0.01;
+				}
+				if (pixelateRef.current.uniforms.progressDistortion.value >= 0.0015) {
+					pixelateRef.current.uniforms.progressDistortion.value -= 0.0015;
+				} else {
+					resetValues();
+				}
+			}
 		}
 	});
 
@@ -191,26 +258,35 @@ export function GridBox(props) {
 		<>
 			{showPerf && <Perf position={"top-left"} />}
 
-			<mesh geometry={particlesGeometry} position={[0, 0.0, -0.0]}>
-				<distortionShader ref={distortionRef} />
-			</mesh>
+			{showDistortion && (
+				<mesh geometry={particlesGeometry} position={[0, 0.0, -0.0]}>
+					<distortionShader ref={distortionRef} />
+				</mesh>
+			)}
 
-			<mesh key={gridSize}>
-				<points
-					geometry={particlesGeometry}
-					position={[0, 0.0, 0]}
-					rotation={[0, 0, 0]}
-				>
-					<renderTargetShader
-						ref={shaderRef}
-						transparent
-						side={DoubleSide}
-						depth
-						pointSize={pointSize * dpr}
-						//blending={THREE.AdditiveBlending}
-					/>
-				</points>
-			</mesh>
+			{showPixelate && (
+				<mesh geometry={particlesGeometry} position={[0, 0.0, 0.0]}>
+					<pixelShader ref={pixelateRef} uPixels={PIXELS} />
+				</mesh>
+			)}
+			{showParticles && (
+				<mesh key={gridSize}>
+					<points
+						geometry={particlesGeometry}
+						position={[0, 0.0, 0]}
+						rotation={[0, 0, 0]}
+					>
+						<renderTargetShader
+							ref={shaderRef}
+							transparent
+							side={DoubleSide}
+							depth
+							pointSize={pointSize * dpr}
+							//blending={THREE.AdditiveBlending}
+						/>
+					</points>
+				</mesh>
+			)}
 		</>
 	);
 }
