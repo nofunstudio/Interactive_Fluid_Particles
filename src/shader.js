@@ -5,18 +5,14 @@ import * as THREE from "three";
 export const RenderTargetShader = shaderMaterial(
 	{
 		time: 0,
-		t4: undefined,
-		t3: undefined,
 		t2: undefined,
 		t: undefined,
-		transition1: 0.0,
-		transition2: 0.0,
-		transitionNoise: 0.0,
+		progressImage: 0.0,
+		progressDistortion: 0.0,
 		damping: 0.01,
 		roughness: 0.0,
 		metalness: 0.0,
 		pointSize: 2.0,
-
 		directionalLightColor: new THREE.Color(0.5, 0.5, 0.5),
 		directionalLightDirection: new THREE.Vector3(-1, -1, -1),
 	},
@@ -31,9 +27,8 @@ uniform float time;
 uniform float pointSize;
 uniform float damping;
 varying vec3 vNormal;
-uniform float transition1;
-uniform float transition2;
-uniform float transitionNoise;
+uniform float progressImage;
+uniform float progressDistortion;
 varying vec3 vPosition;
     float PI = 3.141592653589793238;
 
@@ -179,7 +174,7 @@ void main() {
     position.x*0.95 +time*0.9,
     position.y*0.95 + time*0.9,
     (position.x + position.y)+time*.1
-    ))*transitionNoise*.2;
+    ))*progressDistortion*.2;
     
     vec3 finalPosition = position + distortion1;
        // Ensure Z position is positive
@@ -191,8 +186,9 @@ void main() {
 
    gl_Position = projectionMatrix * modelViewMatrix * vec4(finalPosition, 1.0);
     
-    gl_PointSize =(transitionNoise)*15. ;
-      // gl_PointSize =10.;
+    gl_PointSize =(progressDistortion)*10.;
+   // gl_PointSize = 0.;
+
    
 }
 
@@ -200,12 +196,10 @@ void main() {
 	`,
 	`
   varying vec2 vUv;
+  uniform sampler2D t;
   uniform sampler2D t2;
-  uniform sampler2D t3;
-  uniform sampler2D t4;
-  uniform float transition1;
-  uniform float transition2;
-  uniform float transitionNoise;
+  uniform float progressImage;
+  uniform float progressDistortion;
   varying vec3 vViewPosition; 
   uniform float roughness;
   uniform float metallic;
@@ -214,18 +208,13 @@ void main() {
       return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
   }
   void main() {
-  vec4 currentColor = texture2D(t2, vUv);
-  vec4 lowResColor = texture2D(t3, vUv);
-  vec4 highResColor = texture2D(t4, vUv);
- vec4 mix1 = mix(currentColor, lowResColor, transition1);
+  if(progressDistortion < 0.01) discard;
+  vec4 currentColor = texture2D(t, vUv);
+  vec4 nextColor = texture2D(t2, vUv);
 
-    // Mix lowResColor with highResColor based on transition2
-    vec4 mix2 = mix(lowResColor, highResColor, transition2);
+    vec4 baseColor= mix(currentColor, nextColor, progressImage);
 
-    // Combine the two mixes to get the final baseColor
-    vec4 baseColor = mix(mix1, mix2, transition2);
-    
-
+  
     vec3 toFragment = normalize(vec3(2.0 * gl_PointCoord.x - 1.0, 2.0 * gl_PointCoord.y - 1.0, sqrt(1.0 - (2.0 * gl_PointCoord.x - 1.0) * (2.0 * gl_PointCoord.x - 1.0) - (2.0 * gl_PointCoord.y - 1.0) * (2.0 * gl_PointCoord.y - 1.0))));
     
     vec2 adjustedCoords = gl_PointCoord * 2.0 - 1.0;
