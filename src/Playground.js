@@ -28,8 +28,12 @@ import {
 import { PivotWrapper } from "./PivotWrapper";
 import { DepthShader } from "./depthShader";
 import { uploadAndFetchData } from "./Api";
+import { useScoreStore } from "./ScoreStore";
+import { Suzanne } from "./Suzanne";
 
 export function Playground(isGenerating) {
+	const { generatedImage, setGeneratedImage, setGenerationRequest } =
+		useScoreStore();
 	const { scene, gl, camera, size } = useThree();
 	const depthRef = useRef();
 
@@ -71,13 +75,27 @@ export function Playground(isGenerating) {
 			const context = canvas.getContext("2d");
 
 			const imageData = context.createImageData(width, height);
-			imageData.data.set(buffer);
+			// Flip the image vertically while copying the data
+			for (let y = 0; y < height; y++) {
+				for (let x = 0; x < width; x++) {
+					const sourceIndex = (y * width + x) * 4;
+					const targetIndex = ((height - y - 1) * width + x) * 4;
+					imageData.data[targetIndex] = buffer[sourceIndex];
+					imageData.data[targetIndex + 1] = buffer[sourceIndex + 1];
+					imageData.data[targetIndex + 2] = buffer[sourceIndex + 2];
+					imageData.data[targetIndex + 3] = buffer[sourceIndex + 3];
+				}
+			}
 			context.putImageData(imageData, 0, 0);
 
 			const base64Data = canvas.toDataURL("image/png"); // Convert canvas to Base64
 
 			// Upload the Base64 image and fetch data
-			await uploadAndFetchData(base64Data);
+			await uploadAndFetchData(
+				base64Data,
+				setGeneratedImage,
+				setGenerationRequest
+			);
 		};
 		if (isGenerating) {
 			handleTextureToImage();
@@ -110,11 +128,12 @@ export function Playground(isGenerating) {
 		<>
 			<Environment
 				files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/autumn_field_puresky_1k.hdr"
-				background={true}
+				background={false}
 			/>
 
-			<PivotWrapper />
-			<group position={[0, -0.5, 0]}>
+			{/* <PivotWrapper /> */}
+			<Suzanne />
+			{/* <group position={[0, -0.5, 0]}>
 				<Grid
 					gridSize={[10.5, 10.5]}
 					cellSize={0.6}
@@ -128,7 +147,7 @@ export function Playground(isGenerating) {
 					followCamera={false}
 					infiniteGrid={true}
 				/>
-			</group>
+			</group> */}
 
 			<mesh position={[-0.5, 0.5, 1.0]}>
 				<planeGeometry args={[0.25, 0.25]} />

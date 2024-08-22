@@ -9,6 +9,7 @@ import { useControls, Leva } from "leva";
 import { GridBox } from "./GridBox";
 import { Playground } from "./Playground";
 import { OrbitControls } from "@react-three/drei";
+import { GenerationCanvas } from "./GenerationCanvas";
 
 const Header = () => (
 	<div className="header-div">
@@ -26,9 +27,6 @@ const LeftCanvas = () => {
 	const [isGenerating, setIsGenerating] = useState(false);
 	function handleButton() {
 		setIsGenerating(!isGenerating);
-		setTimeout(() => {
-			setIsGenerating(false);
-		}, 5000);
 	}
 
 	return (
@@ -39,7 +37,7 @@ const LeftCanvas = () => {
 			<Canvas
 				camera={{
 					near: 0.5, // Adjust the near clipping plane here
-					far: 2, // Adjust the far clipping plane here
+					far: 5, // Adjust the far clipping plane here
 					fov: 75, // Field of view
 					position: [0, 0, 2], // Camera position
 				}}
@@ -54,7 +52,8 @@ const LeftCanvas = () => {
 const RightCanvas = () => (
 	<div className="center-column">
 		<Canvas>
-			<GridBox />
+			{/* <GridBox /> */}
+			<GenerationCanvas />
 		</Canvas>
 	</div>
 );

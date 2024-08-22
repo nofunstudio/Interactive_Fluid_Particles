@@ -22,7 +22,8 @@
 		"react-dom": "18.2.0",
 		"react-scripts": "5.0.1",
 		"three": "^0.164.1",
-		"three-stdlib": ">=2.29.5"
+		"three-stdlib": ">=2.29.5",
+		"zustand": "^4.5.5"
 	},
 	"devDependencies": {
 		"typescript": "3.3.3"

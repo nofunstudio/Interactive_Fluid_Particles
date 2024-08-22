@@ -1,11 +1,19 @@
 import * as fal from "@fal-ai/serverless-client";
+import { useScoreStore } from "./ScoreStore";
 
 fal.config({
 	credentials:
 		"a5411de0-36c9-4e9a-bd61-51da82c9a742:cbc4cf9924de5a5c864b1dbf2b1bf1f0",
 });
-export async function uploadAndFetchData(base64Data) {
+
+export async function uploadAndFetchData(
+	base64Data,
+	setGeneratedImage,
+	setGenerationRequest
+) {
 	// Create a Blob from the base64 data URI
+	setGenerationRequest(true);
+	console.log("generation requested");
 	const byteString = atob(base64Data.split(",")[1]);
 	const mimeString = base64Data.split(",")[0].split(":")[1].split(";")[0];
 	const buffer = new ArrayBuffer(byteString.length);
@@ -22,7 +30,8 @@ export async function uploadAndFetchData(base64Data) {
 	// Use the URL in your request
 	const result = await fal.subscribe("fal-ai/sd15-depth-controlnet", {
 		input: {
-			prompt: "Ice fortress, aurora skies, polar wildlife, twilight",
+			prompt:
+				"Metallic style, Jeff Koons Balloon style sculpture, high contrast, shadows",
 			control_image_url: url,
 		},
 		logs: true,
@@ -33,6 +42,12 @@ export async function uploadAndFetchData(base64Data) {
 		},
 	});
 
-	// Handle the result as needed
-	console.log(result);
+	if (result.images && result.images.length > 0) {
+		const imageUrl = result.images[0].url;
+		setGeneratedImage(imageUrl);
+		// setGenerationRequest(false);
+		console.log("Generated Image URL:", imageUrl);
+	} else {
+		console.error("No image URL found in the result");
+	}
 }

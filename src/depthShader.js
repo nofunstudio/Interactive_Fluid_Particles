@@ -5,8 +5,8 @@ import * as THREE from "three";
 export const DepthShader = shaderMaterial(
 	{
 		uDepthTexture: null,
-		uContrast: 5.0, // Add a uniform to control contrast
-		uBrightness: 0.0, // Add a uniform to control brightness
+		uContrast: 2.0, // Add a uniform to control contrast
+		uBrightness: 0, // Add a uniform to control brightness
 	},
 	`
    varying vec2 vUv;
