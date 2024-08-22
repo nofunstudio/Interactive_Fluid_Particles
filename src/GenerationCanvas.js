@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useMemo, useState } from "react";
 import { useFrame, useThree, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScoreStore } from "./ScoreStore";
-import { DistortionShader } from "./DistortionShader";
+import { DistortionDepthShader } from "./DistortionDepthShader";
+import { useControls } from "leva";
 
 export function GenerationCanvas(props) {
 	const {
@@ -10,7 +11,23 @@ export function GenerationCanvas(props) {
 		setGeneratedImage,
 		setGenerationRequest,
 		generationRequest,
+		depthMapFrame,
 	} = useScoreStore();
+
+	const { maskProgress, backgroundOpacity } = useControls({
+		maskProgress: {
+			value: 0.0,
+			min: 0.0,
+			max: 1,
+			step: 0.01,
+		},
+		backgroundOpacity: {
+			value: 1.0,
+			min: 0.0,
+			max: 1,
+			step: 0.01,
+		},
+	});
 	const distortionRef = useRef();
 	const { size, camera, viewport } = useThree();
 	const dpr = viewport.dpr;
@@ -19,9 +36,8 @@ export function GenerationCanvas(props) {
 	const height = 2 * Math.tan(fov / 2) * camera.position.z;
 	const width = height * aspectRatio;
 	const particlesGeometry = useMemo(
-		() =>
-			new THREE.PlaneGeometry(width, height, props.gridSize, props.gridSize),
-		[props.gridSize, width, height]
+		() => new THREE.PlaneGeometry(width, height, 100, 100),
+		[width, height]
 	);
 
 	const [currentImage, setCurrentImage] = useState(
@@ -29,6 +45,11 @@ export function GenerationCanvas(props) {
 	);
 	const [nextImage, setNextImage] = useState(
 		"https://fal-cdn.batuhan-941.workers.dev/files/panda/tcyQIxzxxwR5n3H71yvG-.jpeg"
+	);
+	const depthTexture = useLoader(
+		THREE.TextureLoader,
+		depthMapFrame ||
+			"https://fal-cdn.batuhan-941.workers.dev/files/panda/tcyQIxzxxwR5n3H71yvG-.jpeg"
 	);
 
 	const highResImg = useLoader(THREE.TextureLoader, currentImage);
@@ -50,15 +71,35 @@ export function GenerationCanvas(props) {
 
 	useEffect(() => {
 		if (generatedImage) {
-			setNextImage(generatedImage);
-			setPhase(1);
+			const loader = new THREE.TextureLoader();
+			loader.load(generatedImage, (texture) => {
+				// Once the texture is loaded, update nextImage and start the transition
+				setNextImage(generatedImage);
+				if (distortionRef.current) {
+					distortionRef.current.uniforms.t2.value = texture;
+					setPhase(1);
+				}
+			});
 		}
 	}, [generatedImage]);
+
+	useEffect(() => {
+		if (nextImage !== currentImage) {
+			// The transition will now start here, after the image has been loaded
+			setPhase(1);
+		}
+	}, [nextImage, currentImage]);
 
 	useFrame((state, delta) => {
 		if (distortionRef.current) {
 			const { uniforms } = distortionRef.current;
-			uniforms.time.value -= delta * 0.15;
+			if (depthMapFrame) {
+				uniforms.tDepth.value = depthTexture;
+				uniforms.maskProgress.value = maskProgress;
+				uniforms.backgroundOpacity.value = backgroundOpacity;
+			}
+
+			uniforms.time.value += delta * 1.5;
 
 			switch (phase) {
 				case 0: // Distortion phase
@@ -94,13 +135,13 @@ export function GenerationCanvas(props) {
 					break;
 			}
 
-			uniforms.scale.value = 5.0;
+			uniforms.scale.value = -6.0;
 		}
 	});
 
 	return (
 		<mesh geometry={particlesGeometry} position={[0, 0.0, -0.0]}>
-			<distortionShader ref={distortionRef} />
+			<distortionDepthShader ref={distortionRef} />
 		</mesh>
 	);
 }

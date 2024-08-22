@@ -35,6 +35,7 @@ const LeftCanvas = () => {
 				Generate
 			</button>
 			<Canvas
+				onPointerUp={handleButton}
 				camera={{
 					near: 0.5, // Adjust the near clipping plane here
 					far: 5, // Adjust the far clipping plane here

@@ -24,16 +24,37 @@ import {
 	GizmoViewport,
 	Grid,
 	Environment,
+	Backdrop,
 } from "@react-three/drei";
 import { PivotWrapper } from "./PivotWrapper";
 import { DepthShader } from "./depthShader";
 import { uploadAndFetchData } from "./Api";
 import { useScoreStore } from "./ScoreStore";
 import { Suzanne } from "./Suzanne";
+import { depth } from "three/examples/jsm/nodes/Nodes.js";
+import { Human } from "./Human";
+import { Axe } from "./Axe";
 
 export function Playground(isGenerating) {
-	const { generatedImage, setGeneratedImage, setGenerationRequest } =
-		useScoreStore();
+	const {
+		generatedImage,
+		setGeneratedImage,
+		setGenerationRequest,
+		depthMapFrame,
+		setDepthMapFrame,
+	} = useScoreStore();
+	const { monkey, human, axe } = useControls({
+		monkey: {
+			value: true,
+		},
+		human: {
+			value: false,
+		},
+		axe: {
+			value: false,
+		},
+	});
+
 	const { scene, gl, camera, size } = useThree();
 	const depthRef = useRef();
 
@@ -64,10 +85,13 @@ export function Playground(isGenerating) {
 	useEffect(() => {
 		const handleTextureToImage = async () => {
 			const { width, height } = size;
+
 			// Extract pixel data from the depth shader target
 			const buffer = new Uint8Array(width * height * 4);
 			gl.readRenderTargetPixels(depthShaderTarget, 0, 0, width, height, buffer);
-
+			//pass depth frame on generate to other
+			console.log(depthShaderTarget.texture);
+			setDepthMapFrame(depthShaderTarget.texture);
 			// Convert to a Base64 string
 			const canvas = document.createElement("canvas");
 			canvas.width = width;
@@ -89,7 +113,7 @@ export function Playground(isGenerating) {
 			context.putImageData(imageData, 0, 0);
 
 			const base64Data = canvas.toDataURL("image/png"); // Convert canvas to Base64
-
+			setDepthMapFrame(base64Data);
 			// Upload the Base64 image and fetch data
 			await uploadAndFetchData(
 				base64Data,
@@ -132,7 +156,10 @@ export function Playground(isGenerating) {
 			/>
 
 			{/* <PivotWrapper /> */}
-			<Suzanne />
+			{monkey && <Suzanne />}
+			{human && <Human />}
+			{axe && <Axe />}
+
 			{/* <group position={[0, -0.5, 0]}>
 				<Grid
 					gridSize={[10.5, 10.5]}

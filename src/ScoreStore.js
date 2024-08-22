@@ -5,4 +5,6 @@ export const useScoreStore = create((set) => ({
 	setGenerationRequest: (generationRequest) => set({ generationRequest }),
 	generatedImage: null,
 	setGeneratedImage: (generatedImage) => set({ generatedImage }),
+	depthMapFrame: null,
+	setDepthMapFrame: (depthMapFrame) => set({ depthMapFrame }),
 }));
