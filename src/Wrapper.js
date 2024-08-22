@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./wrapperStyles.css";
 import sidebar from "./images/sidebar.png";
 import prompt from "./images/prompt.png";
@@ -7,6 +7,8 @@ import gridBackground from "./images/gridBackground.png";
 import { Canvas } from "@react-three/fiber";
 import { useControls, Leva } from "leva";
 import { GridBox } from "./GridBox";
+import { Playground } from "./Playground";
+import { OrbitControls } from "@react-three/drei";
 
 const Header = () => (
 	<div className="header-div">
@@ -20,11 +22,34 @@ const Header = () => (
 	</div>
 );
 
-const LeftCanvas = () => (
-	<div className="center-column">
-		<img src={gridBackground} loading="lazy" alt="" className="canvas" />
-	</div>
-);
+const LeftCanvas = () => {
+	const [isGenerating, setIsGenerating] = useState(false);
+	function handleButton() {
+		setIsGenerating(!isGenerating);
+		setTimeout(() => {
+			setIsGenerating(false);
+		}, 5000);
+	}
+
+	return (
+		<div className="center-column">
+			<button className="generateButton" onClick={handleButton}>
+				Generate
+			</button>
+			<Canvas
+				camera={{
+					near: 0.5, // Adjust the near clipping plane here
+					far: 2, // Adjust the far clipping plane here
+					fov: 75, // Field of view
+					position: [0, 0, 2], // Camera position
+				}}
+			>
+				<OrbitControls makeDefault />
+				<Playground isGenerating={isGenerating} />
+			</Canvas>
+		</div>
+	);
+};
 
 const RightCanvas = () => (
 	<div className="center-column">

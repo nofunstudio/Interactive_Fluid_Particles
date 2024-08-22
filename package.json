@@ -5,6 +5,7 @@
 	"keywords": [],
 	"main": "src/index.js",
 	"dependencies": {
+		"@fal-ai/serverless-client": "^0.14.2",
 		"@funtech-inc/use-shader-fx": "^1.1.23",
 		"@gsap/react": "^2.1.1",
 		"@react-spring/three": "9.7.2",
