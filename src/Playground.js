@@ -236,8 +236,8 @@ export function Playground(isGenerating) {
 	return (
 		<>
 			<Environment
-				// files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/autumn_field_puresky_1k.hdr"
-				files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/little_paris_eiffel_tower_1k.hdr"
+				files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/autumn_field_puresky_1k.hdr"
+				// files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/little_paris_eiffel_tower_1k.hdr"
 				background={activeMenu === "Ai3D" ? true : false}
 			/>
 
