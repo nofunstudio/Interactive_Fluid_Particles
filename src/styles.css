@@ -15,7 +15,7 @@ canvas {
 	height: 100%;
 	z-index: 1;
 	touch-action: none;
-	pointer-events: none;
+	/* pointer-events: none; */
 	user-select: none;
 	-webkit-user-select: none; /* Disable text selection */
 	-webkit-touch-callout: none; /* iOS Safari - Disable the default callout shown when you touch and hold a touch target */
@@ -29,22 +29,6 @@ canvas {
 	justify-content: center;
 }
 
-.container {
-	width: fit-content;
-	height: auto;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	pointer-events: none;
-	overflow: hidden;
-	mix-blend-mode: difference;
-	color: white;
-}
-
-h1 {
-	position: relative;
-}
 #root {
 	position: fixed;
 	width: 100%;
@@ -52,22 +36,4 @@ h1 {
 
 	align-items: center;
 	justify-content: center;
-}
-
-#jimbo {
-	z-index: 1;
-	position: absolute;
-	width: 100vw;
-	height: 100vh;
-	pointer-events: all !important;
-	/* pointer-events: none !important; */
-}
-
-#blackout {
-	z-index: 2;
-	position: absolute;
-	width: 100vw;
-	height: 100vh;
-	background-color: black;
-	pointer-events: none !important;
 }

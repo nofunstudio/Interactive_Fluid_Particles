@@ -1,13 +1,219 @@
 .body {
 	background-color: #141414;
 }
-.picker {
-	position: fixed;
-	top: 10px;
-	left: 10px;
-	z-index: 100;
-	width: 100px;
-	height: 100px;
+
+.promptlayoutdiv {
+	position: absolute;
+	left: 0%;
+	top: auto;
+	right: 0%;
+	bottom: 0%;
+	display: flex;
+	max-width: 30vw;
+	padding-top: 4px;
+	padding-right: 4px;
+	padding-bottom: 4px;
+	padding-left: 4px;
+	border-top-style: solid;
+	border-top-width: 0.5px;
+	border-top-color: hsla(0, 0%, 28.67%, 1);
+	border-right-style: solid;
+	border-right-width: 0.5px;
+	border-right-color: hsla(0, 0%, 28.67%, 1);
+	border-bottom-style: solid;
+	border-bottom-width: 0.5px;
+	border-bottom-color: hsla(0, 0%, 28.67%, 1);
+	border-left-style: solid;
+	border-left-width: 0.5px;
+	border-left-color: hsla(0, 0%, 28.67%, 1);
+	border-top-left-radius: 20px;
+	border-top-right-radius: 20px;
+	border-bottom-left-radius: 20px;
+	border-bottom-right-radius: 20px;
+	background-color: hsla(0, 0%, 8%, 1);
+}
+.prompt-text-area {
+	display: flex;
+	width: 300px;
+	min-height: 75px;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	flex-grow: 1;
+	flex-shrink: 1;
+	flex-basis: 0%;
+	margin: 0px !important;
+	padding: 0px !important;
+}
+
+.textarea {
+	height: 100%;
+	/* align-self: stretch; */
+	flex-direction: column;
+	flex-grow: 1;
+	/* flex-shrink: 1; */
+	flex-basis: 0%;
+	margin: 0px !important;
+	border-style: none !important;
+	border-top-width: 0px;
+	border-top-color: black;
+	border-right-style: solid;
+	border-right-width: 0px;
+	border-right-color: black;
+	border-bottom-style: solid;
+	border-bottom-width: 0px;
+	border-bottom-color: black;
+	border-left-style: solid;
+	border-left-width: 0px;
+	border-left-color: black;
+	border-top-left-radius: 18px;
+	border-top-right-radius: 18px;
+	border-bottom-left-radius: 18px;
+	border-bottom-right-radius: 18px;
+	background-color: hsla(0, 0%, 0%, 1) !important;
+	font-size: 12px !important;
+	color: #fff !important;
+}
+:-webkit-input-placeholder {
+	color: hsl(0, 0%, 100%);
+}
+.add-image-div {
+	position: relative;
+	overflow: hidden;
+	width: 75px;
+	height: 75px;
+	margin-left: 4px;
+	border-top-style: solid;
+	border-top-width: 1px;
+	border-top-color: black;
+	border-right-style: solid;
+	border-right-width: 1px;
+	border-right-color: black;
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+	border-bottom-color: black;
+	border-left-style: solid;
+	border-left-width: 1px;
+	border-left-color: black;
+	border-top-left-radius: 17px;
+	border-top-right-radius: 17px;
+	border-bottom-left-radius: 17px;
+	border-bottom-right-radius: 17px;
+	transition-property: all;
+	transition-duration: 200ms;
+	transition-timing-function: ease;
+	cursor: pointer;
+	background-color: rgb(68, 68, 68);
+}
+
+.add-image-div:hover {
+	border-top-color: hsla(0, 0%, 100%, 1);
+	border-right-color: hsla(0, 0%, 100%, 1);
+	border-bottom-color: hsla(0, 0%, 100%, 1);
+	border-left-color: hsla(0, 0%, 100%, 1);
+}
+.add-image-background {
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+.add-image-icon {
+	position: absolute;
+	left: 0%;
+	top: 0%;
+	right: 0%;
+	bottom: 0%;
+	width: 100%;
+	height: 100%;
+	padding: 25px;
+	background-image: linear-gradient(
+		to bottom,
+		rgba(0, 0, 0, 0.5),
+		rgba(0, 0, 0, 0.5)
+	);
+}
+
+.icon {
+	width: 100%;
+}
+.side-wrapper-left {
+	position: absolute;
+	left: 0%;
+	top: 0%;
+	right: auto;
+	bottom: 0%;
+	z-index: 10;
+	display: flex;
+	height: 100%;
+	margin-left: 14px;
+	flex-direction: column;
+	justify-content: center;
+	flex-wrap: nowrap;
+	align-items: center;
+}
+.side-wrapper-right {
+	position: absolute;
+	left: auto;
+	top: 0%;
+	right: 0%;
+	bottom: 0%;
+	z-index: 10;
+	display: flex;
+	height: 100%;
+	margin-left: 14px;
+	flex-direction: column;
+	justify-content: center;
+	flex-wrap: nowrap;
+	align-items: center;
+}
+.sidenav {
+	position: relative;
+	left: 0%;
+	top: 0%;
+	right: auto;
+	bottom: 0%;
+	display: flex;
+	width: 75px;
+	margin-left: 0px;
+	padding-top: 2px;
+	padding-right: 8px;
+	padding-bottom: 2px;
+	padding-left: 8px;
+	flex-direction: column;
+	justify-content: center;
+	flex-wrap: nowrap;
+	align-items: center;
+	border-top-left-radius: 14px;
+	border-top-right-radius: 14px;
+	border-bottom-left-radius: 14px;
+	border-bottom-right-radius: 14px;
+	background-color: hsla(0, 0%, 8%, 1);
+}
+.side-button {
+	width: 100%;
+	height: 60px;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	padding-top: 16px;
+	padding-right: 16px;
+	padding-bottom: 16px;
+	padding-left: 16px;
+	border-top-left-radius: 14px;
+	border-top-right-radius: 14px;
+	border-bottom-left-radius: 14px;
+	border-bottom-right-radius: 14px;
+	background-color: hsla(0, 0%, 10%, 1);
+	cursor: pointer;
+}
+
+.icon {
+	width: 100%;
+}
+
+.side-button:hover {
+	background-color: hsla(0, 0.45%, 20.57%, 1);
+}
+.side-button.active {
+	background-color: rgb(70, 70, 70);
 }
 
 .generateButton {
@@ -103,18 +309,17 @@
 }
 
 .center-div {
-	grid-column-gap: 8px;
-	grid-row-gap: 8px;
-	grid-template:
-		"Area Area-2"
-		/ 1fr 1fr;
-	grid-auto-columns: 1fr;
-	height: 100%;
-	padding: 8px;
-	display: grid;
+	display: flex; /* Use flexbox layout */
+	justify-content: space-around; /* Evenly space the two items */
+	align-items: center; /* Align items vertically in the center */
+	width: 100%; /* Set the width of the container */
+	height: 100%; /* Set the height of the container to maintain a 1:1 aspect ratio */
+	padding: 18px; /* Padding around the container */
+	background-color: #111; /* Background color for the container */
 }
-
 .center-column {
+	width: 45vw;
+	height: 45vw;
 	background-color: #111;
 	border-radius: 13px;
 }
@@ -132,9 +337,11 @@
 }
 
 .prompt-div {
+	position: relative;
+	display: block;
+	width: 30vw;
+	height: 30px;
 	align-items: flex-end;
-	max-height: 100%;
-	display: flex;
 }
 
 .prompt-img {

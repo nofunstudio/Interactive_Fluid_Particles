@@ -14,6 +14,8 @@ import {
 	Mesh,
 	Scene,
 	OrthographicCamera,
+	RGBAFormat,
+	FloatType,
 } from "three";
 
 import * as THREE from "three";
@@ -25,6 +27,7 @@ import {
 	Grid,
 	Environment,
 	Backdrop,
+	useTexture,
 } from "@react-three/drei";
 import { PivotWrapper } from "./PivotWrapper";
 import { DepthShader } from "./depthShader";
@@ -34,45 +37,56 @@ import { Suzanne } from "./Suzanne";
 import { depth } from "three/examples/jsm/nodes/Nodes.js";
 import { Human } from "./Human";
 import { Axe } from "./Axe";
+import { ModelGenerated } from "./ModelGenerated";
+import { uploadAndFetch3D } from "./Api3DTripo";
+import { uploadAndFetchStabilityAI3D } from "./Api3Dfast";
+import loading from "./images/loadingAi.png";
+import { Cybertruck } from "./Cybertruck";
+import selectImg from "./images/selectAi.png";
+import { uploadAndFetchDataFlux } from "./ApiFlux";
 
 export function Playground(isGenerating) {
 	const {
 		generatedImage,
+		generationRequest,
 		setGeneratedImage,
 		setGenerationRequest,
 		depthMapFrame,
 		setDepthMapFrame,
+		generatedModel,
+		setGeneratedModel,
+		generationRequestModel,
+		setGenerationRequestModel,
+		activeMenu,
+		promptText,
+		promptImage,
 	} = useScoreStore();
-	const { monkey, human, axe } = useControls({
-		monkey: {
-			value: true,
-		},
-		human: {
-			value: false,
-		},
-		axe: {
-			value: false,
-		},
-	});
 
 	const { scene, gl, camera, size } = useThree();
 	const depthRef = useRef();
+	const loadingTexture = useTexture(loading);
+	const selectTexture = useTexture(selectImg);
+	const [modelArray, setModelArray] = useState([]);
 
 	// Create a depth texture and a render target for the main scene
 	const depthTexture = useMemo(() => new DepthTexture(), []);
 	const renderTarget = useMemo(
 		() =>
-			new WebGLRenderTarget(size.width, size.height, {
+			new WebGLRenderTarget(512, 512, {
 				depthTexture: depthTexture,
 				depthBuffer: true,
+				format: RGBAFormat,
+				type: FloatType,
+				generateMipmaps: false,
 			}),
-		[size.width, size.height]
+		[,]
 	);
 
 	// Create a separate render target for the depth shader result
 	const depthShaderTarget = useMemo(
-		() => new WebGLRenderTarget(size.width, size.height),
-		[size.width, size.height]
+		() =>
+			new WebGLRenderTarget(512, 512, { format: RGBAFormat, type: FloatType }),
+		[]
 	);
 
 	// Create a separate scene and camera for rendering the depth shader
@@ -82,62 +96,112 @@ export function Playground(isGenerating) {
 		[]
 	);
 
+	const pingPongTarget = useMemo(() => new WebGLRenderTarget(512, 512), []);
+	const [isLoading, setLoading] = useState(true);
 	useEffect(() => {
 		const handleTextureToImage = async () => {
-			const { width, height } = size;
+			const processTexture = (target, setter) => {
+				const buffer = new Float32Array(512 * 512 * 4);
+				gl.readRenderTargetPixels(target, 0, 0, 512, 512, buffer);
 
-			// Extract pixel data from the depth shader target
-			const buffer = new Uint8Array(width * height * 4);
-			gl.readRenderTargetPixels(depthShaderTarget, 0, 0, width, height, buffer);
-			//pass depth frame on generate to other
-			console.log(depthShaderTarget.texture);
-			setDepthMapFrame(depthShaderTarget.texture);
-			// Convert to a Base64 string
-			const canvas = document.createElement("canvas");
-			canvas.width = width;
-			canvas.height = height;
-			const context = canvas.getContext("2d");
+				const canvas = document.createElement("canvas");
+				canvas.width = 512;
+				canvas.height = 512;
+				const context = canvas.getContext("2d");
 
-			const imageData = context.createImageData(width, height);
-			// Flip the image vertically while copying the data
-			for (let y = 0; y < height; y++) {
-				for (let x = 0; x < width; x++) {
-					const sourceIndex = (y * width + x) * 4;
-					const targetIndex = ((height - y - 1) * width + x) * 4;
-					imageData.data[targetIndex] = buffer[sourceIndex];
-					imageData.data[targetIndex + 1] = buffer[sourceIndex + 1];
-					imageData.data[targetIndex + 2] = buffer[sourceIndex + 2];
-					imageData.data[targetIndex + 3] = buffer[sourceIndex + 3];
+				const imageData = context.createImageData(512, 512);
+				for (let i = 0; i < buffer.length; i += 4) {
+					const r = Math.pow(buffer[i], 1 / 2.2) * 255;
+					const g = Math.pow(buffer[i + 1], 1 / 2.2) * 255;
+					const b = Math.pow(buffer[i + 2], 1 / 2.2) * 255;
+					const a = buffer[i + 3] * 255;
+
+					const row = Math.floor(i / 4 / 512);
+					const col = (i / 4) % 512;
+					const flippedIndex = ((511 - row) * 512 + col) * 4;
+
+					imageData.data[flippedIndex] = r;
+					imageData.data[flippedIndex + 1] = g;
+					imageData.data[flippedIndex + 2] = b;
+					imageData.data[flippedIndex + 3] = a;
 				}
-			}
-			context.putImageData(imageData, 0, 0);
+				context.putImageData(imageData, 0, 0);
 
-			const base64Data = canvas.toDataURL("image/png"); // Convert canvas to Base64
-			setDepthMapFrame(base64Data);
-			// Upload the Base64 image and fetch data
-			await uploadAndFetchData(
-				base64Data,
+				const base64Data = canvas.toDataURL("image/png");
+				setter(base64Data);
+				return base64Data;
+			};
+			console.log("generation false!!!!!!");
+			setGenerationRequest(false);
+
+			// Process renderTarget
+			const renderTargetBase64 = processTexture(renderTarget, setDepthMapFrame);
+
+			// Process depthShaderTarget
+			const depthShaderTargetBase64 = processTexture(
+				depthShaderTarget,
+				setDepthMapFrame
+			);
+
+			// Upload the Base64 image and fetch data (using renderTarget base64)
+			// await uploadAndFetchData(
+			// 	renderTargetBase64,
+			// 	setGeneratedImage,
+			// 	setGenerationRequest,
+			// 	promptText
+			// );
+			await uploadAndFetchDataFlux(
+				renderTargetBase64,
+				depthShaderTargetBase64,
 				setGeneratedImage,
-				setGenerationRequest
+				setGenerationRequest,
+				promptText
 			);
 		};
-		if (isGenerating) {
+
+		if (isGenerating && !isLoading) {
+			setGenerationRequest(true);
 			handleTextureToImage();
+		} else {
+			setLoading(false);
 		}
-	}, [isGenerating, gl, depthShaderTarget, size]);
+	}, [isGenerating, gl, depthShaderTarget, renderTarget]);
+
+	useEffect(() => {
+		const texture_resolution = "1024";
+		const foreground_ratio = 0.85;
+		if (promptImage && !generationRequestModel) {
+			// uploadAndFetch3D(setGeneratedModel, setGenerationRequestModel);
+			uploadAndFetchStabilityAI3D(
+				setGeneratedModel,
+				setGenerationRequestModel,
+				promptImage,
+				texture_resolution,
+				foreground_ratio
+			);
+		}
+	}, [promptImage]);
 
 	useFrame(() => {
+		const originalCameraLayers = camera.layers.mask;
+		camera.layers.disable(1);
 		// Render main scene to render target
 		gl.setRenderTarget(renderTarget);
 		gl.render(scene, camera);
 
-		// Render depth shader to its own target
+		// NEW: Ping-pong rendering for depth shader
 		if (depthRef.current) {
-			depthRef.current.uniforms.uDepthTexture.value = depthTexture;
+			// First pass: Render depth shader using main scene depth texture
+			gl.setRenderTarget(pingPongTarget);
+			depthRef.current.uniforms.uDepthTexture.value = renderTarget.depthTexture;
+			gl.render(depthScene, depthCamera);
+
+			// Second pass: Render depth shader using result from first pass
 			gl.setRenderTarget(depthShaderTarget);
+			depthRef.current.uniforms.uDepthTexture.value = pingPongTarget.texture;
 			gl.render(depthScene, depthCamera);
 		}
-
+		camera.layers.enableAll();
 		// Reset render target
 		gl.setRenderTarget(null);
 	});
@@ -147,36 +211,75 @@ export function Playground(isGenerating) {
 		const quad = new Mesh(new PlaneGeometry(2, 2), depthRef.current);
 		depthScene.add(quad);
 	}, []);
+	useEffect(() => {
+		camera.layers.enableAll();
+		camera.layers.disable(1);
+	}, [camera]);
+
+	useEffect(() => {
+		if (generatedModel) {
+			setModelArray((prevArray) => [...prevArray, generatedModel]);
+		}
+	}, [generatedModel]);
+
+	const renderModels = () => {
+		return modelArray.map((model, index) => (
+			<ModelGenerated
+				generationRequest={generationRequest}
+				key={index}
+				generatedModel={model}
+				position={[index * 0.5 - (modelArray.length - 1), 0, 0]}
+			/>
+		));
+	};
 
 	return (
 		<>
 			<Environment
-				files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/autumn_field_puresky_1k.hdr"
-				background={false}
+				// files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/autumn_field_puresky_1k.hdr"
+				files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/little_paris_eiffel_tower_1k.hdr"
+				background={activeMenu === "Ai3D" ? true : false}
 			/>
 
 			{/* <PivotWrapper /> */}
-			{monkey && <Suzanne />}
-			{human && <Human />}
-			{axe && <Axe />}
+			{activeMenu === "Monkey" && <Suzanne />}
+			{activeMenu === "Human" && <Human />}
+			{activeMenu === "Axe" && <Axe />}
+			{activeMenu === "Cybertruck" && <Cybertruck />}
 
-			{/* <group position={[0, -0.5, 0]}>
-				<Grid
-					gridSize={[10.5, 10.5]}
-					cellSize={0.6}
-					cellThickness={1}
-					cellColor={"#ffffff"}
-					sectionSize={3.3}
-					sectionThickness={1.5}
-					sectionColor={"#f0f0f0"}
-					fadeDistance={25}
-					fadeStrength={1}
-					followCamera={false}
-					infiniteGrid={true}
-				/>
-			</group> */}
+			{activeMenu === "Ai3D" &&
+				(modelArray.length > 0 ? (
+					renderModels()
+				) : (
+					<>
+						<group position={[0, -0.5, 0]}>
+							<Grid
+								gridSize={[10.5, 10.5]}
+								cellSize={0.6}
+								cellThickness={1}
+								cellColor={"#ffffff"}
+								sectionSize={3.3}
+								sectionThickness={1.5}
+								sectionColor={"#f0f0f0"}
+								fadeDistance={25}
+								fadeStrength={1}
+								followCamera={false}
+								infiniteGrid={true}
+							/>
+						</group>
 
-			<mesh position={[-0.5, 0.5, 1.0]}>
+						<mesh position={[0, 0.5, 0]}>
+							<planeGeometry args={[1.0, 1.0]} />
+							<meshBasicMaterial
+								map={generationRequestModel ? loadingTexture : selectTexture}
+								transparent
+								opacity={0.9}
+							/>
+						</mesh>
+					</>
+				))}
+
+			<mesh position={[-0.5, 0.5, 1.0]} layers={1}>
 				<planeGeometry args={[0.25, 0.25]} />
 				<depthShader ref={depthRef} />
 			</mesh>

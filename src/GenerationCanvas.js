@@ -12,22 +12,10 @@ export function GenerationCanvas(props) {
 		setGenerationRequest,
 		generationRequest,
 		depthMapFrame,
+		maskProgress,
+		backgroundOpacity,
 	} = useScoreStore();
 
-	const { maskProgress, backgroundOpacity } = useControls({
-		maskProgress: {
-			value: 0.0,
-			min: 0.0,
-			max: 1,
-			step: 0.01,
-		},
-		backgroundOpacity: {
-			value: 1.0,
-			min: 0.0,
-			max: 1,
-			step: 0.01,
-		},
-	});
 	const distortionRef = useRef();
 	const { size, camera, viewport } = useThree();
 	const dpr = viewport.dpr;
@@ -62,6 +50,13 @@ export function GenerationCanvas(props) {
 			distortionRef.current.uniforms.t2.value = lowResImg;
 		}
 	}, [highResImg, lowResImg]);
+
+	useEffect(() => {
+		if (distortionRef.current) {
+			distortionRef.current.uniforms.backgroundOpacity.value =
+				backgroundOpacity;
+		}
+	}, [backgroundOpacity]);
 
 	useEffect(() => {
 		if (generationRequest) {

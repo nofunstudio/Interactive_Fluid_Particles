@@ -66,7 +66,7 @@ void main() {
     vec4 textureColor = mix(textureColor1, textureColor2, progressImage);
 
     // Calculate alpha based on depth and mask progress
-    float depthValue = textureDepth.r;
+    float depthValue = 1.0-textureDepth.r;
     float threshold = maskProgress;
     float alpha = step(threshold, depthValue);
 

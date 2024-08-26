@@ -9,10 +9,11 @@ fal.config({
 export async function uploadAndFetchData(
 	base64Data,
 	setGeneratedImage,
-	setGenerationRequest
+	setGenerationRequest,
+	promptText
 ) {
 	// Create a Blob from the base64 data URI
-	setGenerationRequest(true);
+	// setGenerationRequest(true);
 	console.log("generation requested");
 	const byteString = atob(base64Data.split(",")[1]);
 	const mimeString = base64Data.split(",")[0].split(":")[1].split(";")[0];
@@ -30,8 +31,7 @@ export async function uploadAndFetchData(
 	// Use the URL in your request
 	const result = await fal.subscribe("fal-ai/sd15-depth-controlnet", {
 		input: {
-			prompt:
-				"Metallic style, Jeff Koons Balloon style sculpture, high contrast, shadows",
+			prompt: promptText,
 			control_image_url: url,
 		},
 		logs: true,
@@ -45,6 +45,8 @@ export async function uploadAndFetchData(
 	if (result.images && result.images.length > 0) {
 		const imageUrl = result.images[0].url;
 		setGeneratedImage(imageUrl);
+		setGenerationRequest(false);
+
 		// setGenerationRequest(false);
 		console.log("Generated Image URL:", imageUrl);
 	} else {
