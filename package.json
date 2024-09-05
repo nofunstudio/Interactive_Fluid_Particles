@@ -13,6 +13,7 @@
 		"@react-three/drei": "^9.105.6",
 		"@react-three/fiber": "^8.16.3",
 		"@react-three/postprocessing": "2.14.8",
+		"@runware/sdk-js": "^1.1.17",
 		"axios": "^1.7.5",
 		"form-data": "^4.0.0",
 		"gsap": "^3.12.5",
