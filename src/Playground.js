@@ -46,6 +46,7 @@ import selectImg from "./images/selectAi.png";
 import { uploadAndFetchDataFlux } from "./ApiFlux";
 import { uploadAndFetchData360 } from "./api360";
 import envMap from "./images/envTest.png";
+import EnvironmentShader from "./EnvironmentShader";
 
 export function Playground(isGenerating) {
 	const {
@@ -70,6 +71,8 @@ export function Playground(isGenerating) {
 
 	const { scene, gl, camera, size } = useThree();
 	const depthRef = useRef();
+	const environmentRef = useRef();
+	const envMaterialRef = useRef();
 	const loadingTexture = useTexture(loading);
 	const selectTexture = useTexture(selectImg);
 	const [modelArray, setModelArray] = useState([]);
@@ -188,12 +191,16 @@ export function Playground(isGenerating) {
 		}
 	}, [promptImage]);
 
-	useFrame(() => {
+	useFrame((state, delta) => {
 		const originalCameraLayers = camera.layers.mask;
 		camera.layers.disable(1);
 		// Render main scene to render target
 		gl.setRenderTarget(renderTarget);
 		gl.render(scene, camera);
+
+		if (environmentRef.current) {
+			environmentRef.current.uniforms.time.value += delta * 1.5;
+		}
 
 		// NEW: Ping-pong rendering for depth shader
 		if (depthRef.current) {
@@ -251,10 +258,22 @@ export function Playground(isGenerating) {
 					console.log("New texture loaded:", texture);
 					texture.mapping = THREE.EquirectangularReflectionMapping;
 					setEnvTexture(texture);
+					if (environmentRef.current) {
+						environmentRef.current.uniforms.t1.value = texture;
+					}
 				},
 				undefined,
 				(error) => console.error("Error loading texture:", error)
 			);
+			if (envMaterialRef.current) {
+				envMaterialRef.current.needsUpdate = true;
+				envMaterialRef.current.toneMapped = false;
+			}
+		} else {
+			if (environmentRef.current) {
+				environmentRef.current.uniforms.t1.value = defaultEnvTexture;
+				environmentRef.current.needsUpdate = true;
+			}
 		}
 	}, [generatedEnvironment]);
 	//360 environment map
@@ -269,6 +288,16 @@ export function Playground(isGenerating) {
 		}
 	}, [activeMenu]);
 
+	useEffect(() => {
+		if (environmentRef.current) {
+			if (generationRequestEnvironment) {
+				environmentRef.current.uniforms.progress.value = 0.0;
+			} else {
+				environmentRef.current.uniforms.progress.value = 1.0;
+			}
+		}
+	}, [generationRequestEnvironment]);
+
 	return (
 		<>
 			{/* <Environment
@@ -277,10 +306,15 @@ export function Playground(isGenerating) {
 				background={activeMenu === "Ai3D" ? true : false}
 			/> */}
 
-			<Environment background={true}>
+			<Environment background={true} environmentIntensity={2.0}>
 				<mesh scale={100}>
 					<sphereGeometry args={[1, 64, 64]} />
-					<meshBasicMaterial map={envTexture} side={THREE.BackSide} />
+					<meshBasicMaterial
+						map={envTexture}
+						side={THREE.BackSide}
+						ref={envMaterialRef}
+					/>
+					{/* <environmentShader ref={environmentRef} side={THREE.BackSide} /> */}
 				</mesh>
 			</Environment>
 
@@ -290,11 +324,25 @@ export function Playground(isGenerating) {
 			{activeMenu === "Axe" && <Axe />}
 			{activeMenu === "Cybertruck" && <Cybertruck />}
 			{activeMenu === "Simulation" && (
-				<mesh scale={0.5}>
-					<sphereGeometry args={[1, 64, 64]} />
-					<meshStandardMaterial color={"grey"} roughness={0} metalness={0.2} />
-				</mesh>
+				<>
+					{!generationRequestEnvironment && (
+						<mesh scale={0.5}>
+							<sphereGeometry args={[1, 64, 64]} />
+							<meshStandardMaterial
+								color={"grey"}
+								roughness={0.0}
+								metalness={0.1}
+							/>
+						</mesh>
+					)}
+				</>
 			)}
+
+			<mesh scale={5}>
+				<sphereGeometry args={[1, 64, 64]} />
+
+				<environmentShader ref={environmentRef} side={THREE.BackSide} />
+			</mesh>
 
 			{activeMenu === "Ai3D" &&
 				(modelArray.length > 0 ? (
