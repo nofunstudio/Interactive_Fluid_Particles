@@ -44,6 +44,8 @@ import loading from "./images/loadingAi.png";
 import { Cybertruck } from "./Cybertruck";
 import selectImg from "./images/selectAi.png";
 import { uploadAndFetchDataFlux } from "./ApiFlux";
+import { uploadAndFetchData360 } from "./api360";
+import envMap from "./images/envTest.png";
 
 export function Playground(isGenerating) {
 	const {
@@ -60,6 +62,10 @@ export function Playground(isGenerating) {
 		activeMenu,
 		promptText,
 		promptImage,
+		setGenerationRequestEnvironment,
+		generationRequestEnvironment,
+		setGeneratedEnvironment,
+		generatedEnvironment,
 	} = useScoreStore();
 
 	const { scene, gl, camera, size } = useThree();
@@ -232,20 +238,63 @@ export function Playground(isGenerating) {
 			/>
 		));
 	};
+	const defaultEnvTexture = useLoader(THREE.TextureLoader, envMap);
+	const [envTexture, setEnvTexture] = useState(defaultEnvTexture);
+
+	useEffect(() => {
+		if (generatedEnvironment) {
+			console.log("Loading generated environment:", generatedEnvironment);
+			const loader = new THREE.TextureLoader();
+			loader.load(
+				generatedEnvironment,
+				(texture) => {
+					console.log("New texture loaded:", texture);
+					texture.mapping = THREE.EquirectangularReflectionMapping;
+					setEnvTexture(texture);
+				},
+				undefined,
+				(error) => console.error("Error loading texture:", error)
+			);
+		}
+	}, [generatedEnvironment]);
+	//360 environment map
+
+	useEffect(() => {
+		if (activeMenu === "Simulation") {
+			uploadAndFetchData360(
+				setGeneratedEnvironment,
+				setGenerationRequestEnvironment,
+				promptText
+			);
+		}
+	}, [activeMenu]);
 
 	return (
 		<>
-			<Environment
+			{/* <Environment
 				files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/autumn_field_puresky_1k.hdr"
 				// files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/little_paris_eiffel_tower_1k.hdr"
 				background={activeMenu === "Ai3D" ? true : false}
-			/>
+			/> */}
+
+			<Environment background={true}>
+				<mesh scale={100}>
+					<sphereGeometry args={[1, 64, 64]} />
+					<meshBasicMaterial map={envTexture} side={THREE.BackSide} />
+				</mesh>
+			</Environment>
 
 			{/* <PivotWrapper /> */}
 			{activeMenu === "Monkey" && <Suzanne />}
 			{activeMenu === "Human" && <Human />}
 			{activeMenu === "Axe" && <Axe />}
 			{activeMenu === "Cybertruck" && <Cybertruck />}
+			{activeMenu === "Simulation" && (
+				<mesh scale={0.5}>
+					<sphereGeometry args={[1, 64, 64]} />
+					<meshStandardMaterial color={"grey"} roughness={0} metalness={0.2} />
+				</mesh>
+			)}
 
 			{activeMenu === "Ai3D" &&
 				(modelArray.length > 0 ? (
