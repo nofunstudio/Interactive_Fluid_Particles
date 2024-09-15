@@ -52,7 +52,7 @@ vec2 resolution = vec2(2.0, 1.0);
     vec3 pos = uvTo3D(uv); // UV => 3D for equirectangular/spherical mapping
 
     // Simple ray marching
-    const float MINIMUM_HIT_DISTANCE = 0.02;
+    const float MINIMUM_HIT_DISTANCE = 0.001;
     const int NUMBER_OF_STEPS = 15;
     float total_distance_traveled = 0.0;
     vec4 fragColor = vec4(0.0);

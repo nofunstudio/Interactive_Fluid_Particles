@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import faceImg from "./images/pat.jpeg";
 
 export const useScoreStore = create((set) => ({
 	promptText:
@@ -8,6 +9,13 @@ export const useScoreStore = create((set) => ({
 	setPromptImage: (promptImage) => set({ promptImage }),
 	activeMenu: "Monkey",
 	setActiveMenu: (activeMenu) => set({ activeMenu }),
+	generationRequestFace: null,
+	setGenerationRequestFace: (generationRequestFace) =>
+		set({ generationRequestFace }),
+	generatedFace: null,
+	setGeneratedFace: (generatedFace) => set({ generatedFace }),
+	faceInputImage: faceImg,
+	setFaceInputImage: (faceInputImage) => set({ faceInputImage }),
 	generationRequestEnvironment: null,
 	setGenerationRequestEnvironment: (generationRequestEnvironment) =>
 		set({ generationRequestEnvironment }),

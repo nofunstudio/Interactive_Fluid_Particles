@@ -47,6 +47,7 @@ import { uploadAndFetchDataFlux } from "./ApiFlux";
 import { uploadAndFetchData360 } from "./api360";
 import envMap from "./images/envTest.png";
 import EnvironmentShader from "./EnvironmentShader";
+import { uploadAndFetchDataFaceFlux } from "./apiFaceFlux";
 
 export function Playground(isGenerating) {
 	const {
@@ -67,6 +68,8 @@ export function Playground(isGenerating) {
 		generationRequestEnvironment,
 		setGeneratedEnvironment,
 		generatedEnvironment,
+		faceInputImage,
+		setFaceInputImage,
 	} = useScoreStore();
 
 	const { scene, gl, camera, size } = useThree();
@@ -159,13 +162,22 @@ export function Playground(isGenerating) {
 			// 	setGenerationRequest,
 			// 	promptText
 			// );
-			await uploadAndFetchDataFlux(
-				renderTargetBase64,
-				depthShaderTargetBase64,
-				setGeneratedImage,
-				setGenerationRequest,
-				promptText
-			);
+			if (activeMenu !== "Face") {
+				await uploadAndFetchDataFaceFlux(
+					faceInputImage,
+					setGeneratedImage,
+					setGenerationRequest,
+					promptText
+				);
+			} else {
+				await uploadAndFetchDataFlux(
+					renderTargetBase64,
+					depthShaderTargetBase64,
+					setGeneratedImage,
+					setGenerationRequest,
+					promptText
+				);
+			}
 		};
 
 		if (isGenerating && !isLoading) {
@@ -259,6 +271,7 @@ export function Playground(isGenerating) {
 					texture.mapping = THREE.EquirectangularReflectionMapping;
 					setEnvTexture(texture);
 					if (environmentRef.current) {
+						environmentRef.current.uniforms.progress.value = 1.0;
 						environmentRef.current.uniforms.t1.value = texture;
 					}
 				},
@@ -292,8 +305,6 @@ export function Playground(isGenerating) {
 		if (environmentRef.current) {
 			if (generationRequestEnvironment) {
 				environmentRef.current.uniforms.progress.value = 0.0;
-			} else {
-				environmentRef.current.uniforms.progress.value = 1.0;
 			}
 		}
 	}, [generationRequestEnvironment]);
@@ -330,8 +341,8 @@ export function Playground(isGenerating) {
 							<sphereGeometry args={[1, 64, 64]} />
 							<meshStandardMaterial
 								color={"grey"}
-								roughness={0.0}
-								metalness={0.1}
+								roughness={0.1}
+								metalness={0.9}
 							/>
 						</mesh>
 					)}
