@@ -1,10 +1,10 @@
-// api/generate-image.js
-const Replicate = require("replicate");
+// /api/generate-image.ts
+import { VercelRequest, VercelResponse } from "@vercel/node";
+import Replicate from "replicate";
 
-module.exports = async (req, res) => {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
 	if (req.method !== "POST") {
-		res.status(405).send("Method Not Allowed");
-		return;
+		return res.status(405).json({ error: "Method not allowed" });
 	}
 
 	const { faceInputImage, promptText } = req.body;
@@ -39,14 +39,13 @@ module.exports = async (req, res) => {
 		);
 
 		if (output && output.length > 0) {
-			res.status(200).json({ imageUrl: output[0] });
+			const imageUrl = output[0];
+			res.status(200).json({ imageUrl });
 		} else {
 			res.status(500).json({ error: "No image URL found in the output" });
 		}
 	} catch (error) {
-		console.error("Error in generate-image function:", error);
-		res
-			.status(500)
-			.json({ error: "An error occurred while generating the image" });
+		console.error("Error in uploadAndFetchDataFaceFlux:", error);
+		res.status(500).json({ error: error.message || "Internal Server Error" });
 	}
-};
+}

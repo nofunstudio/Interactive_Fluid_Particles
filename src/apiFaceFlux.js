@@ -1,10 +1,12 @@
+// Replace your existing function with the following:
+
 export async function uploadAndFetchDataFaceFlux(
 	faceInputImage,
 	setGeneratedImage,
 	setGenerationRequest,
 	promptText
 ) {
-	console.log("Generation requested for face flux");
+	console.log("Generation requested for Face Flux");
 	setGenerationRequest(true);
 
 	try {
@@ -13,10 +15,7 @@ export async function uploadAndFetchDataFaceFlux(
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({
-				faceInputImage,
-				promptText,
-			}),
+			body: JSON.stringify({ faceInputImage, promptText }),
 		});
 
 		const data = await response.json();
@@ -25,7 +24,7 @@ export async function uploadAndFetchDataFaceFlux(
 			setGeneratedImage(data.imageUrl);
 			console.log("Generated Image URL:", data.imageUrl);
 		} else {
-			console.error("Error from serverless function:", data.error);
+			console.error("Error from server:", data.error);
 		}
 	} catch (error) {
 		console.error("Error in uploadAndFetchDataFaceFlux:", error);

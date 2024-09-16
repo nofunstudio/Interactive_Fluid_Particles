@@ -1,0 +1,15 @@
+{
+	"version": 2,
+	"builds": [
+		{
+			"src": "api/generate-image.ts",
+			"use": "@vercel/node"
+		}
+	],
+	"routes": [
+		{
+			"src": "/api/generate-image",
+			"dest": "/api/generate-image.ts"
+		}
+	]
+}

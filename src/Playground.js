@@ -162,7 +162,7 @@ export function Playground(isGenerating) {
 			// 	setGenerationRequest,
 			// 	promptText
 			// );
-			if (activeMenu !== "Face") {
+			if (activeMenu === "Face") {
 				await uploadAndFetchDataFaceFlux(
 					faceInputImage,
 					setGeneratedImage,
