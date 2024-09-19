@@ -33,7 +33,7 @@ const invertBase64Image = (base64Image) => {
 	});
 };
 
-export async function uploadAndFetchDataFlux(
+export async function uploadAndFetchDataFluxDepth(
 	base64Data,
 	base64Data2,
 	setGeneratedImage,
@@ -72,16 +72,29 @@ export async function uploadAndFetchDataFlux(
 		]);
 
 		// Use both URLs in your request
-		const result = await fal.subscribe("fal-ai/flux-differential-diffusion", {
+		const result = await fal.subscribe("fal-ai/flux-general/image-to-image", {
 			input: {
 				prompt: promptText,
-				image_url: url1,
-				change_map_image_url: url2,
-				strength: 0.85,
 				num_inference_steps: 28,
+				controlnets: [
+					{
+						path: "https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Depth/resolve/main/diffusion_pytorch_model.safetensors?download=true",
+						control_image_url: url2,
+						config_url:
+							"https://huggingface.co/Shakker-Labs/FLUX.1-dev-ControlNet-Depth/resolve/main/config.json",
+						conditioning_scale: 0.5,
+					},
+				],
+				controlnet_unions: [],
 				guidance_scale: 3.5,
 				num_images: 1,
 				enable_safety_checker: false,
+				image_url: url1,
+				strength: 0.85,
+				image_size: {
+					width: 1024,
+					height: 1024,
+				},
 			},
 			logs: true,
 			onQueueUpdate: (update) => {

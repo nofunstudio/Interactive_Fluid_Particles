@@ -14,7 +14,7 @@ export const useScoreStore = create((set) => ({
 		set({ generationRequestFace }),
 	generatedFace: null,
 	setGeneratedFace: (generatedFace) => set({ generatedFace }),
-	faceInputImage: faceImg,
+	faceInputImage: null,
 	setFaceInputImage: (faceInputImage) => set({ faceInputImage }),
 	generationRequestEnvironment: null,
 	setGenerationRequestEnvironment: (generationRequestEnvironment) =>

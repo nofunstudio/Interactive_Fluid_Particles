@@ -18,7 +18,7 @@ export function SideNav() {
 		{ id: "Ai3D", icon: Ai3D },
 		{ id: "Monkey", icon: Monkey },
 		{ id: "Human", icon: Human },
-		{ id: "Axe", icon: Axe },
+		{ id: "Face", icon: Axe },
 		{ id: "Simulation", icon: Simulation },
 		{ id: "Cybertruck", icon: Cybertruck },
 	];

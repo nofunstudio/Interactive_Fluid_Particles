@@ -28,6 +28,7 @@ import {
 	Environment,
 	Backdrop,
 	useTexture,
+	Splat,
 } from "@react-three/drei";
 import { PivotWrapper } from "./PivotWrapper";
 import { DepthShader } from "./depthShader";
@@ -48,6 +49,7 @@ import { uploadAndFetchData360 } from "./api360";
 import envMap from "./images/envTest.png";
 import EnvironmentShader from "./EnvironmentShader";
 import { uploadAndFetchDataFaceFlux } from "./apiFaceFlux";
+import { uploadAndFetchDataFluxDepth } from "./ApiFluxDepth";
 
 export function Playground(isGenerating) {
 	const {
@@ -110,6 +112,7 @@ export function Playground(isGenerating) {
 
 	const pingPongTarget = useMemo(() => new WebGLRenderTarget(512, 512), []);
 	const [isLoading, setLoading] = useState(true);
+
 	useEffect(() => {
 		const handleTextureToImage = async () => {
 			const processTexture = (target, setter) => {
@@ -155,22 +158,15 @@ export function Playground(isGenerating) {
 				setDepthMapFrame
 			);
 
-			// Upload the Base64 image and fetch data (using renderTarget base64)
-			// await uploadAndFetchData(
-			// 	renderTargetBase64,
-			// 	setGeneratedImage,
-			// 	setGenerationRequest,
-			// 	promptText
-			// );
-			if (activeMenu === "Face") {
-				await uploadAndFetchDataFaceFlux(
-					faceInputImage,
+			if (activeMenu === "Cybertruck") {
+				await uploadAndFetchData(
+					renderTargetBase64,
 					setGeneratedImage,
 					setGenerationRequest,
 					promptText
 				);
-			} else {
-				await uploadAndFetchDataFlux(
+			} else if (activeMenu !== "Face") {
+				await uploadAndFetchDataFluxDepth(
 					renderTargetBase64,
 					depthShaderTargetBase64,
 					setGeneratedImage,
@@ -187,6 +183,41 @@ export function Playground(isGenerating) {
 			setLoading(false);
 		}
 	}, [isGenerating, gl, depthShaderTarget, renderTarget]);
+	const [faceImageURL, setFaceImageURL] = useState(null);
+	const [faceTexture, setFaceTexture] = useState(null);
+
+	useEffect(() => {
+		if (faceInputImage) {
+			const objectURL = URL.createObjectURL(faceInputImage);
+			setFaceImageURL(objectURL);
+
+			return () => {
+				URL.revokeObjectURL(objectURL);
+			};
+		}
+	}, [faceInputImage]);
+
+	useEffect(() => {
+		if (faceImageURL) {
+			const loader = new THREE.TextureLoader();
+			loader.load(
+				faceImageURL,
+				(texture) => {
+					setFaceTexture(texture);
+				},
+				undefined,
+				(error) => {
+					console.error("Error loading texture:", error);
+				}
+			);
+			uploadAndFetchDataFaceFlux(
+				faceInputImage,
+				setGeneratedImage,
+				setGenerationRequest,
+				promptText
+			);
+		}
+	}, [faceImageURL]);
 
 	useEffect(() => {
 		const texture_resolution = "1024";
@@ -298,6 +329,18 @@ export function Playground(isGenerating) {
 				setGenerationRequestEnvironment,
 				promptText
 			);
+		} else if (activeMenu === "Face") {
+			// prompt upload image dialog
+			const fileInput = document.createElement("input");
+			fileInput.type = "file";
+			fileInput.accept = "image/*";
+			fileInput.onchange = (event) => {
+				const file = event.target.files[0];
+				if (file) {
+					setFaceInputImage(file);
+				}
+			};
+			fileInput.click();
 		}
 	}, [activeMenu]);
 
@@ -333,7 +376,22 @@ export function Playground(isGenerating) {
 			{activeMenu === "Monkey" && <Suzanne />}
 			{activeMenu === "Human" && <Human />}
 			{activeMenu === "Axe" && <Axe />}
-			{activeMenu === "Cybertruck" && <Cybertruck />}
+			{activeMenu === "Face" && faceTexture && (
+				<mesh>
+					<planeGeometry args={[2.5, 2.5]} />
+					<meshBasicMaterial map={faceTexture} />
+				</mesh>
+			)}
+			{activeMenu === "Cybertruck" && (
+				<Splat
+					src={
+						"https://huggingface.co/cakewalk/splat-data/resolve/main/nike.splat"
+					}
+					scale={1.5}
+					position={[1, 3, 1]}
+					alphaTest={0.1}
+				/>
+			)}
 			{activeMenu === "Simulation" && (
 				<>
 					{!generationRequestEnvironment && (
