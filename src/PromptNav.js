@@ -15,9 +15,12 @@ export function PromptNav() {
 		setPromptImage,
 		activeMenu,
 		setActiveMenu,
+		setIsGenerating,
+		isGenerating,
 	} = useScoreStore();
 
 	const [menuOpen, setMenuOpen] = useState(false);
+	function handleButton() {}
 
 	const inputChangeText = (e) => {
 		setPromptText(e.target.value);
@@ -27,10 +30,13 @@ export function PromptNav() {
 		setPromptImage(imgSrc);
 		setMenuOpen(false);
 	};
-
+	// causes infinite loop error!!!!!!!!!!!!!!
 	const menuClick = () => () => {
-		setActiveMenu("Ai3D");
-		setMenuOpen(true);
+		if (isGenerating) {
+			setIsGenerating(false);
+		} else {
+			setIsGenerating(true);
+		}
 	};
 
 	useEffect(() => {

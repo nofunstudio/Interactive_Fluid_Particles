@@ -2,6 +2,8 @@ import { create } from "zustand";
 import faceImg from "./images/pat.jpeg";
 
 export const useScoreStore = create((set) => ({
+	isGenerating: false,
+	setIsGenerating: (isGenerating) => set({ isGenerating }),
 	promptText:
 		"Metallic style, glossy HDR reflections, shiny chrome, Jeff Koons Balloon style sculpture, 8k, unreal engine 5, intricate detailed.",
 	setPromptText: (promptText) => set({ promptText }),

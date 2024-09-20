@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./wrapperStyles.css";
-import "./normalize.css";
-import "./webflow.css";
+// import "./normalize.css";
+// import "./webflow.css";
 import sidebar from "./images/sidebar.png";
 import prompt from "./images/prompt.png";
 import kreaLogo from "./images/krealogo.png";
@@ -15,7 +15,9 @@ import { GenerationCanvas } from "./GenerationCanvas";
 import { SideNav } from "./SideNav";
 import { PromptNav } from "./PromptNav";
 import { RightNav } from "./RightNav";
-
+import { Tldraw } from "tldraw";
+import "tldraw/tldraw.css";
+import { TlDrawListener } from "./TlDrawListener";
 const Header = () => (
 	<div className="header-div">
 		<img src={kreaLogo} loading="lazy" alt="" className="image" />
@@ -29,15 +31,9 @@ const Header = () => (
 );
 
 const LeftCanvas = () => {
-	const [isGenerating, setIsGenerating] = useState(false);
-	function handleButton() {
-		setIsGenerating(!isGenerating);
-	}
-
 	return (
 		<div className="center-column">
 			<Canvas
-				onPointerUp={handleButton}
 				camera={{
 					near: 0.75, // Adjust the near clipping plane here
 					far: 10, // Adjust the far clipping plane here
@@ -46,8 +42,20 @@ const LeftCanvas = () => {
 				}}
 			>
 				<OrbitControls makeDefault />
-				<Playground isGenerating={isGenerating} />
+				<Playground />
 			</Canvas>
+			{/* <div
+				style={{
+					position: "relative",
+					width: "100%",
+					height: "100%",
+					inset: 0,
+				}}
+			>
+				<Tldraw inferDarkMode>
+					<TlDrawListener />
+				</Tldraw>
+			</div> */}
 		</div>
 	);
 };

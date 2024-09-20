@@ -28,6 +28,7 @@
 		"replicate": "^0.32.1",
 		"three": "^0.164.1",
 		"three-stdlib": ">=2.29.5",
+		"tldraw": "^3.0.3",
 		"zustand": "^4.5.5"
 	},
 	"devDependencies": {

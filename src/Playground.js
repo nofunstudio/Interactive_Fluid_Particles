@@ -51,7 +51,7 @@ import EnvironmentShader from "./EnvironmentShader";
 import { uploadAndFetchDataFaceFlux } from "./apiFaceFlux";
 import { uploadAndFetchDataFluxDepth } from "./ApiFluxDepth";
 
-export function Playground(isGenerating) {
+export function Playground() {
 	const {
 		generatedImage,
 		generationRequest,
@@ -72,6 +72,8 @@ export function Playground(isGenerating) {
 		generatedEnvironment,
 		faceInputImage,
 		setFaceInputImage,
+		isGenerating,
+		setIsGenerating,
 	} = useScoreStore();
 
 	const { scene, gl, camera, size } = useThree();
