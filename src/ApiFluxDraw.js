@@ -37,7 +37,7 @@ export async function uploadAndFetchDataFluxDraw(
 					},
 				],
 				controlnet_unions: [],
-				guidance_scale: 2.5,
+				guidance_scale: 0.5,
 				num_images: 1,
 				enable_safety_checker: false,
 				strength: 0.75,

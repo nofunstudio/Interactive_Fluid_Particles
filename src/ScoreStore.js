@@ -9,7 +9,7 @@ export const useScoreStore = create((set) => ({
 	setPromptText: (promptText) => set({ promptText }),
 	promptImage: null,
 	setPromptImage: (promptImage) => set({ promptImage }),
-	activeMenu: "Monkey",
+	activeMenu: "Scribble",
 	setActiveMenu: (activeMenu) => set({ activeMenu }),
 	generationRequestFace: null,
 	setGenerationRequestFace: (generationRequestFace) =>

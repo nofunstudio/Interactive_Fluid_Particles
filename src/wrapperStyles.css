@@ -72,6 +72,7 @@
 	background-color: hsla(0, 0%, 0%, 1) !important;
 	font-size: 12px !important;
 	color: #fff !important;
+	padding: 12px;
 }
 :-webkit-input-placeholder {
 	color: hsl(0, 0%, 100%);

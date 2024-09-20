@@ -46,7 +46,7 @@ import { Cybertruck } from "./Cybertruck";
 import selectImg from "./images/selectAi.png";
 import { uploadAndFetchDataFlux } from "./ApiFlux";
 import { uploadAndFetchData360 } from "./api360";
-import envMap from "./images/envTest.png";
+import envMap from "./images/stad2.png";
 import EnvironmentShader from "./EnvironmentShader";
 import { uploadAndFetchDataFaceFlux } from "./apiFaceFlux";
 import { uploadAndFetchDataFluxDepth } from "./ApiFluxDepth";
@@ -325,7 +325,7 @@ export function Playground() {
 	//360 environment map
 
 	useEffect(() => {
-		if (activeMenu === "Simulation") {
+		if (activeMenu === "360") {
 			uploadAndFetchData360(
 				setGeneratedEnvironment,
 				setGenerationRequestEnvironment,
@@ -384,7 +384,7 @@ export function Playground() {
 					<meshBasicMaterial map={faceTexture} />
 				</mesh>
 			)}
-			{activeMenu === "Cybertruck" && (
+			{activeMenu === "Shoe" && (
 				<Splat
 					src={
 						"https://huggingface.co/cakewalk/splat-data/resolve/main/nike.splat"
@@ -394,7 +394,7 @@ export function Playground() {
 					alphaTest={0.1}
 				/>
 			)}
-			{activeMenu === "Simulation" && (
+			{activeMenu === "360" && (
 				<>
 					{!generationRequestEnvironment && (
 						<mesh scale={0.5}>

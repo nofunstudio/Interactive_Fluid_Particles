@@ -15,9 +15,10 @@ import { GenerationCanvas } from "./GenerationCanvas";
 import { SideNav } from "./SideNav";
 import { PromptNav } from "./PromptNav";
 import { RightNav } from "./RightNav";
-import { Tldraw } from "tldraw";
+import { Tldraw, TLUiOverrides } from "tldraw";
 import "tldraw/tldraw.css";
 import { TlDrawListener } from "./TlDrawListener";
+import { useScoreStore } from "./ScoreStore";
 const Header = () => (
 	<div className="header-div">
 		<img src={kreaLogo} loading="lazy" alt="" className="image" />
@@ -31,31 +32,57 @@ const Header = () => (
 );
 
 const LeftCanvas = () => {
+	const { activeMenu } = useScoreStore();
+	const components = {
+		ContextMenu: null,
+		ActionsMenu: null,
+		HelpMenu: null,
+		ZoomMenu: null,
+		MainMenu: null,
+		Minimap: null,
+		StylePanel: null,
+		PageMenu: null,
+		NavigationPanel: null,
+		// Toolbar: null,
+		KeyboardShortcutsDialog: null,
+		// QuickActions: null,
+		HelperButtons: null,
+		DebugPanel: null,
+		DebugMenu: null,
+		SharePanel: null,
+		MenuPanel: null,
+		TopPanel: null,
+		CursorChatBubble: null,
+	};
+
 	return (
 		<div className="center-column">
-			<Canvas
-				camera={{
-					near: 0.75, // Adjust the near clipping plane here
-					far: 10, // Adjust the far clipping plane here
-					fov: 75, // Field of view
-					position: [0, 0, 2], // Camera position
-				}}
-			>
-				<OrbitControls makeDefault />
-				<Playground />
-			</Canvas>
-			{/* <div
-				style={{
-					position: "relative",
-					width: "100%",
-					height: "100%",
-					inset: 0,
-				}}
-			>
-				<Tldraw inferDarkMode>
-					<TlDrawListener />
-				</Tldraw>
-			</div> */}
+			{activeMenu !== "Scribble" ? (
+				<Canvas
+					camera={{
+						near: 0.75,
+						far: 10,
+						fov: 75,
+						position: [0, 0, 2],
+					}}
+				>
+					<OrbitControls makeDefault />
+					<Playground />
+				</Canvas>
+			) : (
+				<div
+					style={{
+						position: "relative",
+						width: "100%",
+						height: "100%",
+						inset: 0,
+					}}
+				>
+					<Tldraw components={components} inferDarkMode>
+						<TlDrawListener />
+					</Tldraw>
+				</div>
+			)}
 		</div>
 	);
 };

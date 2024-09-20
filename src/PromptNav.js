@@ -5,7 +5,7 @@ import a2 from "./images/a2.jpeg";
 import a3 from "./images/a3.jpeg";
 import a4 from "./images/a4.jpeg";
 import a5 from "./images/a5a.jpeg";
-import icon from "./images/addphoto.svg";
+import icon from "./images/prompt.svg";
 
 export function PromptNav() {
 	const {
